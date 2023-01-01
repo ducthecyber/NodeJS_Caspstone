@@ -1,0 +1,116 @@
+CREATE TABLE NguoiDung (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR (255),
+	email VARCHAR (255),
+	pass_word VARCHAR (255),
+	phone VARCHAR (255),
+	birth_day VARCHAR (255),
+	gender VARCHAR (255),
+	role VARCHAR (255)
+)
+
+INSERT INTO NguoiDung 
+VALUES (0,"Anderson", "anderson@gmail.com", "and123","0098763","01-01-2020","male","user"),
+		(0,"Benjamin", "benjamin@gmail.com", "ben123","0098763","01-02-2020","male","user"),
+		(0,"Charlie", "charlie@gmail.com", "cha123","0098763","01-12-2020","female","admin"),
+		(0,"Danny", "danny@gmail.com", "dan123","0034763","03-12-2020","male","admin"),
+		(0,"Emma", "emma@gmail.com", "emm123","0114763","07-12-2020","female","user"),
+		(0,"Flark", "flark@gmail.com", "fla123","0034763","03-02-2020","male","user"),
+		(0,"Guttanni", "guttani@gmail.com", "gut123","0034273","12-12-2020","female","admin"),
+		(0,"Henneiken", "henneiken@gmail.com", "hen123","0011273","12-07-2020","male","user")
+
+CREATE TABLE ViTri (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	ten_vi_tri VARCHAR (255),
+	tinh_thanh VARCHAR (255),
+	quoc_gia VARCHAR (255),
+	hinh_anh VARCHAR (255)
+)
+
+INSERT INTO ViTri
+VALUES (0,"Ho Chi Minh", "Nam Bo","Viet Nam","https://a0.muscache.com/im/pictures/cc27307d-62ab-4d57-b2bd-07d2f9c7a0b5.jpg?im_w=1200"),
+	(0,"Da Lat", "Bac Trung Bo","Viet Nam","https://a0.muscache.com/im/pictures/miso/Hosting-545989934801304825/original/1f7019ab-e4b5-4bb7-85b8-ce244326b53c.jpeg?im_w=1200"),(0,"VungTau", "Nam Bo","Viet Nam","https://a0.muscache.com/im/pictures/miso/Hosting-545989934801304825/original/1f7019ab-e4b5-4bb7-85b8-ce244326b53c.jpeg?im_w=1200"),
+	(0,"Phu Yen", "Trung Bo","Viet Nam","https://a0.muscache.com/im/pictures/e08a218a-f1ff-427f-bc6c-6ce25e485ef5.jpg?im_w=1200"),
+	(0,"Kon Tum", "Tay Nguyen","Viet Nam","https://a0.muscache.com/im/pictures/dc2b4252-c317-405b-9511-06f2eec29a57.jpg?im_w=720"),
+	(0,"Gia Lai", "Tay Nguyen","Viet Nam","https://a0.muscache.com/im/pictures/ff2093ab-0017-47ca-99a8-6a499b23c30e.jpg?im_w=720"),
+	(0,"Ha Giang", "Tay Bac","Viet Nam","https://a0.muscache.com/im/pictures/37e36334-55f1-454e-84be-16b7c885102c.jpg?im_w=720"),
+	(0,"Ha Noi", "Bac Bo","Viet Nam","https://a0.muscache.com/im/pictures/miso/Hosting-770114124318740715/original/bcf11488-b3b9-4b51-9796-b72e4eca7f73.jpeg?im_w=720")
+	
+
+CREATE TABLE Phong (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	ten_phong VARCHAR (255),
+	khach INT,
+	phong_ngu INT,
+	giuong INT,
+	phong_tam INT,
+	mo_ta VARCHAR (255),
+	gia_tien INT,
+	may_giat BOOLEAN,
+	ban_la BOOLEAN,
+	tivi BOOLEAN,
+	dieu_hoa BOOLEAN,
+	wifi BOOLEAN,
+	bep BOOLEAN,
+	do_xe BOOLEAN,
+	ho_boi BOOLEAN,
+	ban_ui BOOLEAN,
+	hinh_anh VARCHAR (255),
+	ma_vi_tri INT,
+	
+	FOREIGN KEY (ma_vi_tri) REFERENCES ViTri(id)
+)
+
+INSERT INTO Phong
+VALUES (0,"Panorama apartment",4,4,4,2," Peaceful, next to beautiful lake\r\nStudio fully equipped\r\nBalcony\r\nGreen & Fresh",32,true,true,true,true,true,true,true,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-770114124318740715/original/616fe970-c242-4fcd-bee8-533b6ea34ff6.jpeg?im_w=720",1),
+	(0,"Small apartment",2,2,4,2,"Living close to nature, good food to eat, homemade wine to drink, lovely story to share, beautiful place to discover with local guide.",20,true,true,false,true,true,false,true,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-12435854/original/d8d0b605-1610-4eee-931b-a4573e19caa8.jpeg?im_w=1200",5),
+	(0,"Street apartment",2,2,4,1,"Lovely apartment located right in the heart of Hanoi, within walking distance to the most famous attractions",18,true,true,false,true,true,false,true,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-680319079152503519/original/952f2a1c-7b0a-448e-aed7-915c176e7b49.jpeg?im_w=1200",7),
+	(0,"Modern apartment",2,2,4,1,"Full modern furniture and equipment is provided. Large glass windows allow natural light to enter. ",23,false,true,true,true,true,false,false,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-44284175/original/1faa6b79-2d05-4b1c-b556-121f9a59da53.jpeg?im_w=1200",4),
+	(0,"Veque Homflix",2,2,4,1,"An incredible room for a tight budget, gorgeous decoration with 6-star hospitality",46,false,true,true,true,true,false,false,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-732151647948523523/original/e9119eca-30cd-44c5-adc3-6aca78b130a9.png?im_w=1200",1),
+	(0,"Turtle Eco Luxe Villa",2,4,4,3,"A unique Turtle Shape villa located in natural lotus pond surrounding by nature Khao Tao Valley  and Sai Noi beach. Private one bed room studio villa comprising spacious bathroom and outdoor waterside living deck.",100,false,true,true,true,true,true,true,true,true,"https://a0.muscache.com/im/pictures/26229a9b-9c2c-4e36-bb6c-bf2ee22b1514.jpg?im_w=720",6),	
+	(0,"Treehouse",2,2,4,3,"Get away from the crowded tourist districts to the Northern mountains of Mae Taeng 90 mins from Chiang Mai",200,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/5813338/7c1c4f7c_original.jpg?im_w=1200",4),
+	(0," High Skyline Ocean View",5,5,2,3,"STUNNING OCEAN VIEW ON 21st Floor\r\nA Romantic Place to get away with Special ones",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/1f23e84a-f226-4b5d-9405-ffe291206b13.jpg?im_w=1200",3)
+
+
+CREATE TABLE DatPhong (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	ma_phong INT,
+	ngay_den DATETIME,
+	ngay_di DATETIME,
+	so_luong_khach INT,
+	ma_nguoi_dat INT,
+	
+	FOREIGN KEY (ma_phong) REFERENCES Phong(id),
+	FOREIGN KEY (ma_nguoi_dat) REFERENCES NguoiDung(id)
+)
+
+INSERT INTO DatPhong 
+VALUES (0,26,"2022-09-07","2022-09-20",10,1),
+(0,27,"2022-10-07","2022-10-20",5,2),
+(0,28,"2022-11-07","2022-11-20",2,3),
+(0,29,"2022-12-07","2022-12-20",2,4),
+(0,30,"2022-01-07","2022-01-20",7,5),
+(0,31,"2022-01-07","2022-01-20",2,3),
+(0,32,"2022-03-07","2022-03-20",6,4)
+-- DROP TABLE DatPhong
+
+-- ma_cong_viec chuyen thanh ma_phong
+CREATE TABLE BinhLuan (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	ma_phong INT,
+	ma_nguoi_binh_luan INT,
+	ngay_binh_luan DATETIME,
+	noi_dung VARCHAR (255),
+	sao_binh_luan INT,
+	
+	FOREIGN KEY (ma_phong) REFERENCES Phong(id),
+	FOREIGN KEY (ma_nguoi_binh_luan) REFERENCES NguoiDung(id)
+)
+
+INSERT INTO BinhLuan
+VALUES (0,26,1,"2023-12-12","Lovely, cozy, convenient",9),
+(0,27,1,"2023-09-12","Modern, Spacious, Clean",8),
+(0,28,3,"2023-11-12","No Parking, Dark, Noisy",3),
+(0,30,4,"2023-07-07","Friednly host, good breakfast, beautiful view",10),
+(0,31,4,"2023-07-06","Nice design, close to tourist attractions, affordable prices",10),
+(0,32,5,"2023-08-06","Expensive prices, quiet, adorable bedrom, large couch",7)

@@ -42,24 +42,27 @@ export class AuthService {
             //email dung
             if (checkEmail.pass_word == pass_word) {
                 let tokenCyberSoft = this.jwt.sign(checkEmail, {
-                    expiresIn: "6m",
+                    expiresIn: "7d",
                     secret: this.config.get("SECRET_KEY")
                 });
                 //pass dung
                 return {
                     check: true,
                     data: tokenCyberSoft,
+                    user:checkEmail
                 };
             } else {
                 //pass sai
                 return {
                     check: false,
-                    data: "Email sai"
+                    data: "Password chưa đúng. Xin vui lòng thử lại"
                 }
             }
         } else {
             //email sai
-            return true;
+            return {
+                data:"Email sai rồi nhé bạn"
+            };
         }
     }
 }

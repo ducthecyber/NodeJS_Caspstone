@@ -11,10 +11,13 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
   .setTitle("AIRBNB")
+  .setDescription('/swagger/v1/swagger.json')
+  .setVersion('2.0')
   // .addBearerAuth()
   .build();
   const document = SwaggerModule.createDocument(app,config);
   SwaggerModule.setup("/swagger",app,document)
+
   await app.listen(8080);
 }
 bootstrap();

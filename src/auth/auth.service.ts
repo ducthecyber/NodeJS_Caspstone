@@ -1,4 +1,4 @@
-import { Injectable,HttpCode } from '@nestjs/common';
+import { Injectable, HttpCode } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt/dist';
 
@@ -7,31 +7,36 @@ import { PrismaClient } from '@prisma/client';
 export class AuthService {
     constructor(
         private jwt: JwtService,
-        private config:ConfigService
-    ){}
+        private config: ConfigService
+    ) { }
 
     private prisma = new PrismaClient();
 
     //signup
     @HttpCode(201)
-    async signup(  name: string, email: string, pass_word: string, phone: string,birth_day: string,gender: string,  role: string):Promise<any>{
-        await this.prisma.nguoiDung.create({data:{
-            name,email,pass_word,phone,birth_day,gender,role
-        }})
+    async signup(name: string, email: string, pass_word: string, phone: string, birth_day: string, gender: string, role: string): Promise<any> {
+        await this.prisma.nguoiDung.create({
+            data: {
+                name, email, pass_word, phone, birth_day, gender, role
+            }
+        })
         return {
-            "message":"Sign up success",
-            name,
-            email,
-            pass_word,
-            phone,
-            birth_day,
-            gender,
-            role
+            "message": "Sign up success",
+            "statusCode": 200,
+            "content": {
+                name,
+                email,
+                pass_word,
+                phone,
+                birth_day,
+                gender,
+                role
+            }
         }
     }
 
     //SIGNIN
-    @HttpCode(201) 
+    @HttpCode(201)
     async signin(email: string, pass_word: string): Promise<any> {
         let checkEmail = await this.prisma.nguoiDung.findFirst({
             where: {
@@ -49,7 +54,7 @@ export class AuthService {
                 return {
                     check: true,
                     data: tokenCyberSoft,
-                    user:checkEmail
+                    user: checkEmail
                 };
             } else {
                 //pass sai
@@ -61,7 +66,7 @@ export class AuthService {
         } else {
             //email sai
             return {
-                data:"Email sai rồi nhé bạn"
+                data: "Email sai rồi nhé bạn"
             };
         }
     }

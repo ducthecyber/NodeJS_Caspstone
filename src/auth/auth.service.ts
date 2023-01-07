@@ -15,22 +15,48 @@ export class AuthService {
     //signup
     @HttpCode(201)
     async signup(name: string, email: string, pass_word: string, phone: string, birth_day: string, gender: string, role: string): Promise<any> {
-        await this.prisma.nguoiDung.create({
-            data: {
-                name, email, pass_word, phone, birth_day, gender, role
+
+        let newUser = await this.prisma.nguoiDung.findFirst({
+            where: {
+                email: email
             }
         })
-        return {
-            "message": "Sign up success",
-            "statusCode": 200,
-            "content": {
-                name,
-                email,
-                pass_word,
-                phone,
-                birth_day,
-                gender,
-                role
+
+        if (newUser) {
+            let jsonDate = (new Date()).toJSON();
+            return {
+                statusCode: 400,
+                message: "Yêu cầu không hợp lệ",
+                content: "Email đã tồn tại",
+                dateTime: jsonDate,
+            }
+        } else {
+
+            await this.prisma.nguoiDung.create({
+                data: {
+                    name, email, pass_word, phone, birth_day, gender, role
+                }
+            })
+
+            let createdUser = await this.prisma.nguoiDung.findFirst({
+                where: {
+                    email: email
+                }
+            })
+
+            return {
+                "message": "Sign up success",
+                "statusCode": 200,
+                "content": {
+                    id: createdUser.id,
+                    name,
+                    email,
+                    pass_word,
+                    phone,
+                    birth_day,
+                    gender,
+                    role
+                }
             }
         }
     }
@@ -46,15 +72,19 @@ export class AuthService {
         if (checkEmail) {
             //email dung
             if (checkEmail.pass_word == pass_word) {
-                let tokenCyberSoft = this.jwt.sign(checkEmail, {
+                let token = this.jwt.sign(checkEmail, {
                     expiresIn: "7d",
                     secret: this.config.get("SECRET_KEY")
                 });
+                console.log("token",token)
+                let jsonDate = (new Date()).toJSON();
                 //pass dung
                 return {
                     check: true,
-                    data: tokenCyberSoft,
-                    user: checkEmail
+                    token: token,
+                    user: checkEmail,
+                    jsonDate,
+                   
                 };
             } else {
                 //pass sai

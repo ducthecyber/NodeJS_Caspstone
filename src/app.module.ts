@@ -6,10 +6,11 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { BinhLuanModule } from './binh-luan/binh-luan.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal:true}),
-    AuthModule,JwtModule.register({}), BinhLuanModule],
+    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],
 })

@@ -16,6 +16,6 @@ export class BinhLuan{
     @ApiProperty({type:String})
     noi_dung:string
 
-    @ApiProperty({type:String})
+    @ApiProperty({type:Number})
     sao_binh_luan:number
 }

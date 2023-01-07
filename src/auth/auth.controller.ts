@@ -10,7 +10,8 @@ import { type } from 'os';
 import { AuthService } from './auth.service';
 import { NguoiDungDto } from './dto/signin.dto';
 import { ThongTinNguoiDung } from './dto/signup.dto';
-import { Token } from './dto/token.dto';
+import { Token } from '../dto/token.dto';
+import { TokenService } from 'src/token/token.service';
 
 @ApiTags("Auth")
 @Controller('/api/auth')
@@ -18,7 +19,7 @@ export class AuthController {
     constructor(
         private authService: AuthService,
         private jwt: JwtService,
-        // private config:ConfigService
+        private tokenService: TokenService,
     ) { }
 
     //SIGNUP
@@ -28,51 +29,58 @@ export class AuthController {
     //     description: 'Nhập token cybersoft',
     //     required: true,
     // })
-    // @ApiResponse({
-    //     status: 200,
-    //     description: 'The comment was successfully updated',
-    //     type: ThongTinNguoiDung
-    // })
-    @ApiBody({ type: ThongTinNguoiDung, required: false })
+
+    @ApiBody({ type: ThongTinNguoiDung, required: true })
     // @UseGuards(AuthGuard("jwt"))
     public async signup(
         @Body() body: ThongTinNguoiDung,
         @Headers() headers: Token
     )
         : Promise<any> {
-        let data: any = await this.jwt.decode(headers.tokencybersoft);
-        let dNow: Date = new Date();
-        let dToken: Date = new Date(Number(data.HetHanTime));
-       
-        if (dNow > dToken) 
-            throw new ForbiddenException("Không có quyền truy cập");
-       
-            return "truy cap dc";
-        //chak sửa kiểu dữ liệu của tokenCybersoft 
-        const { name, email, pass_word, phone, birth_day, gender, role } = body;
-        return this.authService.signup(name, email, pass_word, phone, birth_day, gender, role)
+        let data = await this.tokenService.checkToken(headers)
+        // let data: any = await this.jwt.decode(headers.tokencybersoft);
+        // let dNow: Date = new Date();
+        // let dToken: Date = new Date(Number(data.HetHanTime));
 
+        // if (dNow > dToken)
+        //     throw new ForbiddenException("Không có quyền truy cập");
+        if (data == true) {
+            const { name, email, pass_word, phone, birth_day, gender, role } = body;
+            return this.authService.signup(name, email, pass_word, phone, birth_day, gender, role)
+        }
+
+        else {
+            return this.tokenService.checkToken(headers)
+        }
     }
 
 
     //SIGNIN
+    @ApiBody({ type: NguoiDungDto, required: true })
     @Post("/signin")
-    async signin(@Body() body: NguoiDungDto): Promise<any> {
+    async signin(@Body() body: NguoiDungDto, @Headers() headers: Token): Promise<any> {
         const { email, pass_word } = body;
-        let checkLogin = await this.authService.signin(email, pass_word);
+        let data = await this.tokenService.checkToken(headers)
+        if (data === true) {
+            let checkLogin = await this.authService.signin(email, pass_word);
 
-        if (checkLogin.check) {
-            return {
-                statusCode: 200,
-                message: "Signin thành công",
-                content: {
-                    user: checkLogin.user,
-                    token: checkLogin.data
+            if (checkLogin.check) {
+                return {
+                    statusCode: 200,
+                    message: "Signin thành công",
+                    content: {
+                        user: checkLogin.user,
+                        token: checkLogin.token
+                    },
+                    dateTime: checkLogin.jsonDate
                 }
+            }
+            else {
+                throw new HttpException(checkLogin.data, HttpStatus.NOT_FOUND);
             }
         }
         else {
-            throw new HttpException(checkLogin.data, HttpStatus.NOT_FOUND);
+            return this.tokenService.checkToken(headers)
         }
     }
 

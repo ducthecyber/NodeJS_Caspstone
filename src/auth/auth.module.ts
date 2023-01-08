@@ -10,7 +10,9 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 @Module({
-  imports:[JwtModule.register({}),
+  imports:[JwtModule.register({
+    secret:process.env.SECRET_KEY,
+  }),
     TokenModule
   ],
   controllers: [AuthController],

@@ -76,7 +76,7 @@ export class AuthService {
                     expiresIn: "7d",
                     secret: this.config.get("SECRET_KEY")
                 });
-                console.log("token",token)
+                // console.log("token",token)
                 let jsonDate = (new Date()).toJSON();
                 //pass dung
                 return {

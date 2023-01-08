@@ -28,7 +28,6 @@ export class BinhLuanService {
     //TAO BINH LUAN MOI
     @HttpCode(200)
     async binhLuanMoi(id: number, ma_phong: number, ma_nguoi_binh_luan: number, date: any, noi_dung: string, sao_binh_luan: number): Promise<any> {
-        console.log(id, ma_phong, ma_nguoi_binh_luan, date, noi_dung, sao_binh_luan)
         await this.prisma.binhLuan.create({
             data: {
                 ma_phong, ma_nguoi_binh_luan, ngay_binh_luan: date, noi_dung, sao_binh_luan
@@ -39,9 +38,9 @@ export class BinhLuanService {
             where: {
                 ma_nguoi_binh_luan
             },
-            distinct:['ma_nguoi_binh_luan'],
-            orderBy:{
-                id:'desc'
+            distinct: ['ma_nguoi_binh_luan'],
+            orderBy: {
+                id: 'desc'
             }
         })
         return {
@@ -58,5 +57,44 @@ export class BinhLuanService {
         }
     }
 
+    //EDIT BINH LUAN
+    @HttpCode(200)
+    async chinhSuaBinhLuan(idParam: number, ma_phong: number, ma_nguoi_binh_luan: number, date: any, noi_dung: string, sao_binh_luan: number): Promise<any> {
+        await this.prisma.binhLuan.update({
+            data: { ma_phong, ma_nguoi_binh_luan, ngay_binh_luan: date, noi_dung, sao_binh_luan },
+            where: {
+                id: Number(idParam)
+            }
+        })
+        let jsonDate = (new Date()).toJSON();
+
+        return{
+            statusCode: 201,
+            content: "Chỉnh sửa thành công",
+            dateTime: jsonDate
+        }
+    }
+
+    //CHECK QUYỀN CHỈNH SỬA
+    async checkAuthAccount(id: number): Promise<any> {
+        let checkData = await this.prisma.nguoiDung.findFirst({
+            where: {
+                id
+            }
+        })
+        if (checkData.role === "ADMIN" || checkData.role === "admin") {
+            return true
+        }
+        else {
+            let jsonDate = (new Date()).toJSON();
+            return {
+                data: {
+                    statusCode: 403,
+                    content: "User không phải quyền admin",
+                    dateTime: jsonDate
+                }
+            }
+        }
+    }
 }
 

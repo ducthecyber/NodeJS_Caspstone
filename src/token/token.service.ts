@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from 'src/dto/token.dto';
+import { TokenSignIn } from 'src/dto/tokenSignIn.dto';
 
 @Injectable()
 export class TokenService {
     constructor(
-        private jwt: JwtService
+        private jwt: JwtService,
+        private config:ConfigService,
     ) { }
 
     async checkToken(token: Token): Promise<any> {
@@ -30,6 +33,26 @@ export class TokenService {
                 dateTime: jsonDate,
             }
 
+        }
+    }
+
+    async checkAccessToken(accessToken:TokenSignIn ):Promise<any>{
+       
+        try{
+            await this.jwt.verify(accessToken.token,this.config.get("SECRET_KEY"))
+            return true
+
+        }catch(err){
+            let jsonDate = (new Date()).toJSON();
+            console.log("err",err)
+            return{
+                data:{
+                    statusCode:403,
+                    content:"token user hết hạn hoặc không đúng",
+                    dateTime:jsonDate
+
+                }
+            }
         }
     }
 

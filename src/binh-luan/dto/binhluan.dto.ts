@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 
-export class BinhLuan{
+export class BinhLuanViewModel{
     @ApiProperty({type:Number})
     id:number
 

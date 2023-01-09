@@ -68,7 +68,7 @@ export class BinhLuanService {
         })
         let jsonDate = (new Date()).toJSON();
 
-        return{
+        return {
             statusCode: 201,
             content: "Chỉnh sửa thành công",
             dateTime: jsonDate
@@ -95,6 +95,72 @@ export class BinhLuanService {
                 }
             }
         }
+    }
+
+    //XÓA BÌNH LUẬN
+    async deleteComment(idDelete: number): Promise<any> {
+        let checkIdComment = await this.prisma.binhLuan.findFirst({
+            where: {
+                id: idDelete
+            }
+        })
+        let jsonDate = (new Date()).toJSON();
+        try {
+            if (checkIdComment.id !== null) {
+                await this.prisma.binhLuan.delete({
+                    where: {
+                        id: idDelete
+                    }
+                })
+                return {
+                    data: {
+                        statusCode: 201,
+                        content: "Xóa bình luận thành công",
+                        dateTime: jsonDate
+                    }
+                }
+            } else {
+                return false
+            }
+        } catch (err) {
+            return {
+                data: {
+                    statusCode: 404,
+                    content: "Comment này đã xóa hoặc không tồn tại",
+                    dateTime: jsonDate
+                }
+            }
+        }
+
+    }
+
+    //GET BÌNH LUẬN THEO MÃ PHÒNG
+    async getCommentById(idPhong: number): Promise<any> {
+        let data = await this.prisma.binhLuan.findMany({
+            where: {
+                ma_phong: Number(idPhong)
+            }
+        })
+        let jsonDate = (new Date()).toJSON();
+        try {
+            if (data.length > 0) {
+                return {
+                    statusCode: 200,
+                    content: data,
+                    dateTime: jsonDate
+                }
+            }
+            else {
+                return {
+                    statusCode: 404,
+                    content: "Mã phòng này không có nha người ơi",
+                    dateTime: jsonDate
+                }
+            }
+        } catch {
+            return false
+        }
+
     }
 }
 

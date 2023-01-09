@@ -8,7 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiExtraModels, ApiHeader, ApiOperation, ApiParam, ApiPropertyOptional, ApiResponse, ApiResponseProperty, ApiTags } from '@nestjs/swagger';
 import { type } from 'os';
 import { AuthService } from './auth.service';
-import { NguoiDungDto } from './dto/signin.dto';
+import { DangNhapView } from './dto/signin.dto';
 import { ThongTinNguoiDung } from './dto/signup.dto';
 import { Token } from '../dto/token.dto';
 import { TokenService } from 'src/token/token.service';
@@ -56,9 +56,9 @@ export class AuthController {
 
 
     //SIGNIN
-    @ApiBody({ type: NguoiDungDto, required: true })
+    @ApiBody({ type: DangNhapView, required: true })
     @Post("/signin")
-    async signin(@Body() body: NguoiDungDto, @Headers() headers: Token): Promise<any> {
+    async signin(@Body() body: DangNhapView, @Headers() headers: Token): Promise<any> {
         const { email, pass_word } = body;
         let data = await this.tokenService.checkToken(headers)
         if (data === true) {

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 
-export class NguoiDungDto{
+export class DangNhapView{
     @ApiProperty ({type:String})
     email:string
 

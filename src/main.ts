@@ -7,7 +7,7 @@ import { SwaggerModule } from '@nestjs/swagger/dist';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.use(express.static("."))
+  app.use(express.static("src"))
 
   const config = new DocumentBuilder()
   .setTitle("AIRBNB")

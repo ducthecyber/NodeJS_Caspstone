@@ -7,10 +7,11 @@ import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { BinhLuanModule } from './binh-luan/binh-luan.module';
 import { TokenModule } from './token/token.module';
+import { DatPhongModule } from './dat-phong/dat-phong.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal:true}),
-    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule],
+    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule, DatPhongModule],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],
 })

@@ -1,6 +1,7 @@
 import { Injectable, HttpCode } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { ApiTags } from '@nestjs/swagger';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class BinhLuanService {
     async binhLuanList(): Promise<any> {
         let data = await this.prisma.binhLuan.findMany();
         let jsonDate = (new Date()).toJSON();
-
+        
         return {
             statusCode: 200,
             content: data,
@@ -162,5 +163,6 @@ export class BinhLuanService {
         }
 
     }
+
 }
 

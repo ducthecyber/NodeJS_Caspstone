@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from 'src/dto/token.dto';
-import { TokenSignIn } from 'src/dto/tokenSignIn.dto';
+import { AccessToken } from 'src/dto/tokenAccess.dto';
 
 @Injectable()
 export class TokenService {
@@ -16,6 +16,7 @@ export class TokenService {
         let data: any = this.jwt.decode(token.tokencybersoft);
         let dNow: Date = new Date();
         if (data !== null) {
+
             let dToken: Date = new Date(Number(data.HetHanTime));
 
             if (dNow > dToken)
@@ -25,6 +26,7 @@ export class TokenService {
             }
         }
         else {
+            console.log("data",data)
             let jsonDate = (new Date()).toJSON();
             return {
                 statusCode: 403,
@@ -36,36 +38,43 @@ export class TokenService {
         }
     }
 
-    async checkAccessToken(accessToken: TokenSignIn): Promise<any> {
-        console.log("accessTOKEN",accessToken)
+    async checkAccessToken(accessToken: AccessToken): Promise<any> {
+        // console.log("accessTOKEN",accessToken)
         try {
             //case1:không nhập nhưng vẫn trả true
             if (accessToken.token === undefined) {
+                let jsonDate = (new Date()).toJSON();
+                
                 return {
-                    check:true,
-                    logInfo:false
+                    check: true,
+                    logInfo: false,
+                    data: {
+                        statusCode: 403,
+                        content: "token user hết hạn hoặc không đúng",
+                        dateTime: jsonDate
+                    }
                 }
-            } 
+            }
             //case2: có nhập và cần check
             else {
-                 await this.jwt.verify(accessToken.token, this.config.get("SECRET_KEY"))
-                 console.log("toeknacces",this.jwt.verify(accessToken.token))
+                await this.jwt.verify(accessToken.token, this.config.get("SECRET_KEY"))
                 return {
-                    check:true,
-                    logInfo:true,
-                    info:this.jwt.verify(accessToken.token, this.config.get("SECRET_KEY"))
-                }   
+                    check: true,
+                    logInfo: true,
+                    info: this.jwt.verify(accessToken.token, this.config.get("SECRET_KEY"))
+                }
             }
 
         } catch (err) {
             let jsonDate = (new Date()).toJSON();
             // console.log("err", err)
+            console.log("checktokenaccess",accessToken.token)
+
             return {
                 data: {
                     statusCode: 403,
                     content: "token user hết hạn hoặc không đúng",
                     dateTime: jsonDate
-
                 }
             }
         }

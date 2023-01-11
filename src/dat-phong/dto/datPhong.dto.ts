@@ -1,61 +1,22 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class PhongViewModel {
+export class DatPhongViewModel {
     @ApiProperty({ type: Number })
     id: number
 
-    @ApiProperty({ type: String })
-    ten_phong: string
-
     @ApiProperty({ type: Number })
-    khach: number
-
-    @ApiProperty({ type: Number })
-    phong_ngu: number
-
-    @ApiProperty({ type: Number })
-    giuong: number
-
-    @ApiProperty({ type: Number })
-    phong_tam: number
+    ma_phong: number
 
     @ApiProperty({ type: String })
-    mo_ta: string
-
-    @ApiProperty({ type: Number })
-    gia_tien: number
-
-    @ApiProperty({ type: Boolean })
-    may_giat: boolean
-
-    @ApiProperty({ type: Boolean })
-    ban_la: boolean
-
-    @ApiProperty({ type: Boolean })
-    tivi: boolean
-
-    @ApiProperty({ type: Boolean })
-    dieu_hoa: boolean
-
-    @ApiProperty({ type: Boolean })
-    wifi: boolean
-
-    @ApiProperty({ type: Boolean })
-    bep: boolean
-
-    @ApiProperty({ type: Boolean })
-    do_xe: boolean
-
-    @ApiProperty({ type: Boolean })
-    ho_boi: boolean
-
-    @ApiProperty({ type: Boolean })
-    ban_ui: boolean
+    ngay_den: string
 
     @ApiProperty({ type: String })
-    hinh_anh: string
+    ngay_di: string
 
     @ApiProperty({ type: Number })
-    ma_vi_tri: number
+    so_luong_khach: number
+
+    @ApiProperty({ type: Number })
+    ma_nguoi_dat: number
     
 }

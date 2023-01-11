@@ -44,6 +44,7 @@ model NguoiDung {
   birth_day String?    @db.VarChar(255)
   gender    String?    @db.VarChar(255)
   role      String?    @db.VarChar(255)
+  avatar    String?    @db.VarChar(255)
   BinhLuan  BinhLuan[]
   DatPhong  DatPhong[]
 }

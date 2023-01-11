@@ -8,10 +8,12 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { BinhLuanModule } from './binh-luan/binh-luan.module';
 import { TokenModule } from './token/token.module';
 import { DatPhongModule } from './dat-phong/dat-phong.module';
+import { PhongThueModule } from './phong-thue/phong-thue.module';
+import { NguoiDungModule } from './nguoi-dung/nguoi-dung.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal:true}),
-    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule, DatPhongModule],
+    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule, DatPhongModule, PhongThueModule, NguoiDungModule],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],
 })

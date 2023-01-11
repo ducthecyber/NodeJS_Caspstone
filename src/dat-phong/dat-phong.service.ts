@@ -14,8 +14,8 @@ export class DatPhongService {
 
     //get DANH SÁCH PHÒNG
     @HttpCode(200)
-    async getListPhong(): Promise<any> {
-        let data = await this.prisma.phong.findMany();
+    async getListDatPhong(): Promise<any> {
+        let data = await this.prisma.datPhong.findMany();
         let jsonDate = (new Date()).toJSON();
 
         return {
@@ -25,6 +25,36 @@ export class DatPhongService {
         }
     }
 
+    //LẤY DANH SÁCH ĐẶT PHÒNG THEO ID
+    async getDatPhongById(id: number): Promise<any> {
+        let checkId = await this.prisma.datPhong.findFirst({
+            where: {
+                id
+            }
+        })
+        let jsonDate = (new Date()).toJSON();
+        if (checkId === null) {
+            return {
+                statusCode: 404,
+                message: "Mã Id không tồn tại trong danh sách",
+                dateTime: jsonDate
+            }
+        }
+        else {
+            let data = await this.prisma.datPhong.findFirst({
+                where: {
+                    id
+                }
+            })
+            return {
+                statusCode: 200,
+                message: "Lấy thông tin đặt phòng thành công",
+                content: data,
+                dateTime: jsonDate
+            }
+        }
+
+    }
     //CHECK QUYỀN THÊM MỚI PHÒNG
     async checkAuthAccount(id: number): Promise<any> {
         let checkData = await this.prisma.nguoiDung.findFirst({
@@ -50,17 +80,17 @@ export class DatPhongService {
 
     // thêm phòng mới
     @HttpCode(201)
-    async themPhongMoi(id: number, ten_phong: string, khach: number, phong_ngu: number, giuong: number, phong_tam: number, mo_ta: string, gia_tien: number, may_giat: boolean, ban_la: boolean, tivi: boolean, dieu_hoa: boolean, wifi: boolean, bep: boolean, do_xe: boolean, ho_boi: boolean, ban_ui: boolean, hinh_anh: string, ma_vi_tri: number): Promise<any> {
+    async themDatPhongMoi(id: number, ma_phong: number, dateArrive: any, dateLeave: any, so_luong_khach: number, ma_nguoi_dat: number): Promise<any> {
         // Query createOnePhong is required to return data, but found no record(s).có thể xảy ra khi id truyền vào là 0
-        await this.prisma.phong.create({
+        await this.prisma.datPhong.create({
             data: {
-                ten_phong, khach, phong_ngu, giuong, phong_tam, mo_ta, gia_tien, may_giat, ban_la, tivi, dieu_hoa, wifi, bep, do_xe, ho_boi, ban_ui, hinh_anh, ma_vi_tri
+                ma_phong, ngay_den: dateArrive, ngay_di: dateLeave, so_luong_khach, ma_nguoi_dat
             }
         })
         // https://stackoverflow.com/questions/70834547/prisma-client-query-for-latest-values-of-each-user
-        let newRoom = await this.prisma.phong.findFirst({
+        let newBooking = await this.prisma.datPhong.findFirst({
             where: {
-                ten_phong
+                ma_phong
             },
             // distinct: ['ma_nguoi_binh_luan'],
             orderBy: {
@@ -70,71 +100,181 @@ export class DatPhongService {
         let jsonDate = (new Date()).toJSON();
         return {
             statusCode: 201,
-            message: "Thêm phòng mới thành công",
+            message: "Thêm đặt phòng mới thành công",
             content: {
-                id: newRoom.id,
-                ten_phong,
-                khach,
-                phong_ngu,
-                giuong,
-                phong_tam,
-                mo_ta,
-                gia_tien,
-                may_giat,
-                ban_la,
-                tivi,
-                dieu_hoa,
-                wifi,
-                bep,
-                do_xe,
-                ho_boi,
-                ban_ui,
-                hinh_anh,
-                ma_vi_tri
+                id: newBooking.id,
+                ma_phong,
+                ngay_den: dateArrive,
+                ngay_di: dateLeave,
+                so_luong_khach,
+                ma_nguoi_dat,
             },
             dateTime: jsonDate
         }
     }
 
-    //LẤY DANH SÁCH PHÒNG THEO MÃ VỊ TRÍ
-    async getPhongByViTri(maViTri: number): Promise<any> {
-
-        let data = await this.prisma.phong.findMany({
-            where: {
-                ma_vi_tri: maViTri
-            }
-        })
-        let checkListViTri = await this.prisma.viTri.findFirst({
-            where: {
-                id: maViTri
-            }
-        })
+    //CHỈNH SỬA THÔNG TIN PHÒNG THEO ID DAT PHÒNG
+    @HttpCode(200)
+    async chinhSuaInfoDatPhong(idParam: number, id: number, ma_phong: number, dateArrive: any, dateLeave: any, so_luong_khach: number, ma_nguoi_dat: number): Promise<any> {
         let jsonDate = (new Date()).toJSON();
-        try {
-            if (data.length > 0) {
+        let checkAuthBookingId = await this.checkAuthBookingId(idParam)
+        let checkAuthUserId = await this.checkAuthUserId(ma_nguoi_dat)
+        let checkAuthRoomId = await this.checkAuthRoomId(ma_phong);
+        if (checkAuthBookingId.check === true && checkAuthUserId.check === true && checkAuthRoomId.check === true) {
+            await this.prisma.datPhong.update({
+                data: {
+                    ma_phong, ngay_den: dateArrive, ngay_di: dateLeave, so_luong_khach, ma_nguoi_dat
+                },
+                where: {
+                    id: Number(idParam)
+                }
+            })
+            let updateDatPhong = await this.prisma.datPhong.findFirst({
+                where: {
+                    id: idParam
+                }
+            })
+            return {
+                statusCode: 201,
+                message: "Chỉnh sửa thành công",
+                content: updateDatPhong,
+                dateTime: jsonDate
+            }
+        }
+        if (!checkAuthBookingId.check) {
+            return {
+                statusCode: 404,
+                message: "Mã đặt phòng không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }
+        }
+        if (!checkAuthUserId.check) {
+            return {
+                statusCode: 404,
+                message: "Mã người đặt không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }
+        }
+        if (!checkAuthRoomId.check) {
+            return {
+                statusCode: 404,
+                message: "Mã phòng không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }
+        }
+        else {
+            return {
+                statusCode: 404,
+                message: "Please. Kiểm tra lại những mã truyền vào",
+                dateTime: jsonDate
+            }
+        }
+
+    }
+
+    //CHECK HỢP LỆ MÃ NGƯỜI ĐẶT
+    async checkAuthUserId(ma_nguoi_dat: number,): Promise<any> {
+
+        let jsonDate = (new Date()).toJSON();
+
+        let checkId = await this.prisma.nguoiDung.findFirst({
+            where: {
+                id: ma_nguoi_dat
+            }
+        })
+        if (checkId === null) {
+            return {
+                check: false,
+            }
+        } else {
+            return {
+                check: true,
+            }
+        }
+    }
+
+    //CHECK HỢP LỆ MÃ ĐẶT PHÒNG
+    async checkAuthBookingId(ma_dat_phong: number): Promise<any> {
+
+        let checkId = await this.prisma.datPhong.findFirst({
+            where: {
+                id: ma_dat_phong
+            }
+        })
+
+        if (checkId === null) {
+            return {
+                check: false,
+            }
+        } else {
+            return {
+                check: true,
+            }
+        }
+
+
+    }
+
+    //CHECK HỢP LỆ MÃ ĐẶT PHÒNG
+    async checkAuthRoomId(ma_phong: number): Promise<any> {
+
+        let checkId = await this.prisma.phong.findFirst({
+            where: {
+                id: ma_phong
+            }
+        })
+        if (checkId === null) {
+            return {
+                check: false,
+            }
+        } else {
+            return {
+                check: true,
+            }
+        }
+    }
+    //LẤY DANH SÁCH ĐẶT PHÒNG THEO MÃ NGƯỜI DÙNG
+    async getDatPhongByIdUser(maNguoiDung: number): Promise<any> {
+        let jsonDate = (new Date()).toJSON();
+        //không có await ở checkAuthUserId thì sẽ báo lỗi "check" property không tồn tại trong Promise<any>
+        let checkAuthUserId = await this.checkAuthUserId(maNguoiDung);
+        if (checkAuthUserId.check === true) {
+            let data = await this.prisma.datPhong.findMany({
+                where: {
+                    ma_nguoi_dat: maNguoiDung
+                },
+                orderBy: {
+                    id: "desc"
+                }
+            })
+            if (data.length !== 0) {
                 return {
                     statusCode: 200,
+                    message: "Lấy thông tin thành công",
                     content: data,
                     dateTime: jsonDate
                 }
-            }
-            if (checkListViTri === null) {
+            } else {
                 return {
                     statusCode: 404,
-                    content: "Mã vị trí này không tồn tại trong danh sách vị trí",
+                    message: "Người dùng chưa đặt phòng",
+                    content: null,
                     dateTime: jsonDate
                 }
             }
-            else {
-                return {
-                    statusCode: 404,
-                    content: "Mã vị trí này chưa có phòng sử dụng",
-                    dateTime: jsonDate
-                }
-            }
-        } catch {
-            return false
         }
+        else {
+            return {
+                statusCode: 404,
+                message: "Mã người dùng không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }
+        }
+
     }
 
     //LẤY DANH SÁCH PHÒNG THEO PHÂN TRANG
@@ -256,101 +396,31 @@ export class DatPhongService {
         }
     }
 
-    //LẤY DANH SÁCH PHÒNG THEO ID
-    async getPhongById(id: number): Promise<any> {
-        let checkId = await this.prisma.phong.findFirst({
-            where: {
-                id
-            }
-        })
-        let jsonDate = (new Date()).toJSON();
-        if (checkId === null) {
-            return {
-                statusCode: 403,
-                message: "Mã Id không tồn tại trong danh sách",
-                dateTime: jsonDate
-            }
-        }
-        else {
-            let data = await this.prisma.phong.findFirst({
-                where: {
-                    id
-                }
-            })
-            return {
-                statusCode: 200,
-                message: "Lấy thông tin phòng thành công",
-                content: data,
-                dateTime: jsonDate
-            }
-        }
-
-    }
-
-    //CHỈNH SỬA THÔNG TIN PHÒNG THEO ID PHÒNG
-    @HttpCode(200)
-    async chinhSuaInfoPhong(idParam: number, id: number, ten_phong: string, khach: number, phong_ngu: number, giuong: number, phong_tam: number, mo_ta: string, gia_tien: number, may_giat: boolean, ban_la: boolean, tivi: boolean, dieu_hoa: boolean, wifi: boolean, bep: boolean, do_xe: boolean, ho_boi: boolean, ban_ui: boolean, hinh_anh: string, ma_vi_tri: number): Promise<any> {
-        let jsonDate = (new Date()).toJSON();
-
-        let checkId = await this.prisma.phong.findFirst({
-            where: {
-                id: idParam
-            }
-        })
-        if (checkId === null) {
-            return {
-                statusCode: 403,
-                message: "Mã Id không tồn tại trong danh sách",
-                dateTime: jsonDate
-            }
-        } else {
-            await this.prisma.phong.update({
-                data: {
-                    ten_phong, khach, phong_ngu, giuong, phong_tam, mo_ta, gia_tien, may_giat, ban_la, tivi, dieu_hoa, wifi, bep, do_xe, ho_boi, ban_ui, hinh_anh, ma_vi_tri
-                },
-                where: {
-                    id: Number(idParam)
-                }
-            })
-
-            return {
-                statusCode: 201,
-                content: "Chỉnh sửa thành công",
-                dateTime: jsonDate
-            }
-        }
-    }
 
     //XÓA THÔNG TIN PHÒNG
-    async xoaPhong(idDelete: number): Promise<any> {
-        let checkIdComment = await this.prisma.phong.findFirst({
-            where: {
-                id: idDelete
-            }
-        })
+    async xoaDatPhong(idDelete: number): Promise<any> {
+        let checkAuthBookingId = await this.checkAuthBookingId(idDelete);
         let jsonDate = (new Date()).toJSON();
-        try {
-            if (checkIdComment.id !== null) {
-                await this.prisma.phong.delete({
-                    where: {
-                        id: idDelete
-                    }
-                })
-                return {
-                    data: {
-                        statusCode: 201,
-                        content: "Xóa thông tin phòng thành công",
-                        dateTime: jsonDate
-                    }
+        if (checkAuthBookingId.check) {
+            await this.prisma.datPhong.delete({
+                where: {
+                    id: idDelete
                 }
-            } else {
-                return false
+            })
+            return {
+                data: {
+                    statusCode: 201,
+                    message: "Xóa thông tin đặt phòng thành công",
+                    content: null,
+                    dateTime: jsonDate
+                }
             }
-        } catch (err) {
+        } else {
             return {
                 data: {
                     statusCode: 404,
-                    content: "Phòng này đã xóa hoặc chưa từng tồn tại",
+                    message: "Mã đặt phòng này đã xóa hoặc chưa từng tồn tại",
+                    content: undefined,
                     dateTime: jsonDate
                 }
             }
@@ -359,19 +429,19 @@ export class DatPhongService {
     }
 
     //Upload HINH PHONG
-    async uploadHinhPhong(maPhong:number,filename:string):Promise<any>{
+    async uploadHinhPhong(maPhong: number, filename: string): Promise<any> {
         await this.prisma.phong.update({
-            data:{hinh_anh:filename},
-            where:{
-                id:maPhong
+            data: { hinh_anh: filename },
+            where: {
+                id: maPhong
             }
         })
         let jsonDate = (new Date()).toJSON();
         return {
-                statusCode: 201,
-                message: "Cập nhật ảnh thành công",
-                content:filename,
-                dateTime: jsonDate
+            statusCode: 201,
+            message: "Cập nhật ảnh thành công",
+            content: filename,
+            dateTime: jsonDate
         }
     }
 }

@@ -24,9 +24,14 @@ export const notFoundCode = (res, data, message) => {
     // });
 }
 
-//500
-export const errorCode = (res,message) => {
-    res.status(500).send(message);
+export const errorCode = (message,content,dateTime) => {
+    // res.status(500).send(message);
+    return {
+        statusCode:400,
+        message,
+        content,
+        dateTime
+    }
 }
 
 //note

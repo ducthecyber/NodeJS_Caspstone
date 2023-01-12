@@ -10,10 +10,11 @@ import { TokenModule } from './token/token.module';
 import { DatPhongModule } from './dat-phong/dat-phong.module';
 import { PhongThueModule } from './phong-thue/phong-thue.module';
 import { NguoiDungModule } from './nguoi-dung/nguoi-dung.module';
+import { ViTriModule } from './vi-tri/vi-tri.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal:true}),
-    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule, DatPhongModule, PhongThueModule, NguoiDungModule],
+    AuthModule,JwtModule.register({}), BinhLuanModule, TokenModule, DatPhongModule, PhongThueModule, NguoiDungModule, ViTriModule],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],
 })

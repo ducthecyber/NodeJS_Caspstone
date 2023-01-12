@@ -36,6 +36,7 @@ export class NguoiDungController {
     }
 
     //TẠO NGƯỜI DÙNG MỚI
+    @HttpCode(201)
     @Post("/users")
     async themNguoiDungMoi(@Body() body: ThongTinNguoiDung, @Headers() headers: Token): Promise<any> {
 
@@ -70,8 +71,9 @@ export class NguoiDungController {
     //LẤY NGƯỜI DÙNG THEO PHÂN TRANG
     @ApiQuery({ name: 'pageIndex', required: false, type: Number })
     @ApiQuery({ name: 'pageSize', required: false, type: Number })
-    @ApiQuery({ name: 'keyWord', required: false, type: String, description: "Search by name or gender" })
+    @ApiQuery({ name: 'keyWord', required: false, type: String, description: "Search by name or role" })
 
+    @HttpCode(200)
     @Get("/users/phan-trang-tim-kiem")
     async getUserByPage(@Headers() headers: Token, @Query("pageIndex") pageIndex: number, @Query("pageSize") pageSize: number, @Query("keyWord") keyWord: string): Promise<any> {
         let data = await this.tokenService.checkToken(headers);
@@ -83,6 +85,7 @@ export class NguoiDungController {
     }
 
     //LẤY NGƯỜI DÙNG THEO ID
+    @HttpCode(200)
     @Get("/users/:id")
     async getUserById(@Headers() headers: Token, @Param("id") id: number): Promise<any> {
         let data = await this.tokenService.checkToken(headers);
@@ -94,6 +97,7 @@ export class NguoiDungController {
     }
 
     //CHỈNH SỬA THÔNG TIN NGƯỜI DÙNG
+    @HttpCode(201)
     @Put("/users/:id")
     async chinhSuaInfoPhong(@Headers() headers: Token, @Param("id") idParam: number, @Body() body: CapNhatNguoiDung): Promise<any> {
 

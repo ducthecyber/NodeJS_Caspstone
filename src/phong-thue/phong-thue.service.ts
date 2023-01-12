@@ -1,7 +1,8 @@
-import { HttpCode, Injectable } from '@nestjs/common';
+import { HttpCode, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
+import { ApiResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class PhongThueService {
@@ -20,6 +21,7 @@ export class PhongThueService {
 
         return {
             statusCode: 200,
+            message: "Lấy thông tin thành công",
             content: data,
             dateTime: jsonDate
         }
@@ -49,7 +51,6 @@ export class PhongThueService {
     }
 
     // thêm phòng mới
-    @HttpCode(201)
     async themPhongMoi(id: number, ten_phong: string, khach: number, phong_ngu: number, giuong: number, phong_tam: number, mo_ta: string, gia_tien: number, may_giat: boolean, ban_la: boolean, tivi: boolean, dieu_hoa: boolean, wifi: boolean, bep: boolean, do_xe: boolean, ho_boi: boolean, ban_ui: boolean, hinh_anh: string, ma_vi_tri: number): Promise<any> {
         // Query createOnePhong is required to return data, but found no record(s).có thể xảy ra khi id truyền vào là 0
         await this.prisma.phong.create({
@@ -104,60 +105,59 @@ export class PhongThueService {
                 ma_vi_tri: maViTri
             }
         })
+
         let checkListViTri = await this.prisma.viTri.findFirst({
             where: {
                 id: maViTri
             }
         })
         let jsonDate = (new Date()).toJSON();
-        try {
-            if (data.length > 0) {
-                return {
-                    statusCode: 200,
-                    content: data,
-                    dateTime: jsonDate
-                }
+        if (data.length > 0 && checkListViTri !== null) {
+            return {
+                statusCode: 200,
+                content: data,
+                dateTime: jsonDate
             }
-            if (checkListViTri === null) {
-                return {
-                    statusCode: 404,
-                    content: "Mã vị trí này không tồn tại trong danh sách vị trí",
-                    dateTime: jsonDate
-                }
-            }
-            else {
-                return {
-                    statusCode: 404,
-                    content: "Mã vị trí này chưa có phòng sử dụng",
-                    dateTime: jsonDate
-                }
-            }
-        } catch {
-            return false
         }
+
+        if (data.length === 0 && checkListViTri !== null) {
+            return {
+                statusCode: 404,
+                message: "Mã vị trí chưa đặt phòng",
+                content: null,
+                dateTime: jsonDate
+            }
+        }
+        else {
+            throw new HttpException({
+                statusCode: 404,
+                message: "Mã vị trí không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }, HttpStatus.BAD_GATEWAY)
+        }
+
     }
 
     //LẤY DANH SÁCH PHÒNG THEO PHÂN TRANG
     async getPhongByPage(pageIndex: number, pageSize: number, keyWord: string): Promise<any> {
 
-
         let jsonDate = (new Date()).toJSON();
-        try {
-            if (keyWord === undefined) {
 
-                let data = await this.prisma.phong.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    orderBy: { id: 'desc' }
-                })
-                let totalRow = await this.prisma.phong.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                })
-                console.log("total", data.length)
-                if (data.length > 0) {
+        try {
+            if (pageIndex !== 0 && pageSize !== 0) {
+                if (keyWord === undefined) {
+                    let totalRow = await this.prisma.phong.count({
+                    })
+                    // https://stackoverflow.com/questions/8701660/pagination-using-skip-and-take-methods
+                    let data = await this.prisma.phong.findMany({
+                        skip: (pageIndex - 1) * pageSize,
+                        take: pageSize,
+                        orderBy: { id: 'asc' }
+                    })
                     return {
                         statusCode: 200,
+                        message: "Lấy thông tin thành công",
                         content: {
                             pageIndex,
                             pageSize,
@@ -167,92 +167,94 @@ export class PhongThueService {
                         },
                         dateTime: jsonDate
                     }
+
                 }
                 else {
-                    return {
-                        statusCode: 400,
-                        message: "Yêu cầu không hợp lệ",
-                        content: "Số trang và số lượng phần tử phải lớn hơn 0",
-                        dateTime: jsonDate
+                    let totalRow = await this.prisma.phong.count({
+                        where: {
+                            OR: [
+                                {
+                                    mo_ta: {
+                                        contains: keyWord
+                                    },
+                                },
+                                {
+                                    ten_phong: {
+                                        contains: keyWord
+                                    }
+                                },
+
+                            ]
+                        },
+                    })
+                    let data = await this.prisma.phong.findMany({
+                        skip: (pageIndex - 1) * pageSize,
+                        take: pageSize,
+                        orderBy: { id: 'asc' },
+                        where: {
+                            OR: [
+                                {
+                                    mo_ta: {
+                                        contains: keyWord
+                                    },
+                                },
+
+                                {
+                                    ten_phong: {
+                                        contains: keyWord
+                                    }
+                                },
+
+                            ]
+                        },
+                    })
+                    if(data.length>0){
+                        return {
+                            statusCode: 200,
+                            message: "Lấy thông tin thành công",
+                            content: {
+                                pageIndex,
+                                pageSize,
+                                totalRow,
+                                keyWord,
+                                data
+                            },
+                            dateTime: jsonDate
+                        }
+                    }
+                    else{
+                        return{
+                            statusCode: 404,
+                            message: "Không tìm thấy kết quả tương ứng từ khóa",
+                            content: {
+                                pageIndex,
+                                pageSize,
+                                totalRow,
+                                keyWord,
+                                data
+                            },
+                            dateTime: jsonDate  
+                        }
                     }
                 }
             }
             else {
-                let totalRow = await this.prisma.phong.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-
-                    where: {
-                        OR: [
-                            {
-                                mo_ta: {
-                                    contains: keyWord
-                                },
-                            },
-                            {
-                                ten_phong: {
-                                    contains: keyWord
-                                }
-                            },
-
-                        ]
-                    },
-                })
-                let data = await this.prisma.phong.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    where: {
-                        OR: [
-                            {
-                                mo_ta: {
-                                    contains: keyWord
-                                },
-                            },
-
-                            {
-                                ten_phong: {
-                                    contains: keyWord
-                                }
-                            },
-
-                        ]
-                    },
-                    orderBy: { id: 'desc' }
-                })
-                console.log("total", data.length)
-
-                if (data.length > 0) {
-                    return {
-                        statusCode: 200,
-                        content: {
-                            pageIndex,
-                            pageSize,
-                            totalRow,
-                            keyWord,
-                            data
-                        },
-                        dateTime: jsonDate
-                    }
-                }
-
-                else {
-                    return {
-                        statusCode: 404,
-                        message: "Không tìm thấy kết quả phù hợp",
-                        content: data,
-                        dateTime: jsonDate
-                    }
-                }
+                throw new HttpException({
+                    statusCode: 400,
+                    message: "Yêu cầu không hợp lệ",
+                    content: "Số trang và số phần tử phải lớn 0",
+                    dateTime: jsonDate
+                }, HttpStatus.BAD_REQUEST)
             }
+        }
 
-        } catch {
-
-            return {
+        catch {
+            throw new HttpException({
                 statusCode: 400,
                 message: "Yêu cầu không hợp lệ",
-                content: "Số trang và số phần tử phải lớn 0 và không vượt quá giá trị cơ sở dữ liệu",
+                content: "Số trang và số phần tử phải lớn 0",
                 dateTime: jsonDate
-            }
+            }, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -267,7 +269,8 @@ export class PhongThueService {
         if (checkId === null) {
             return {
                 statusCode: 403,
-                message: "Mã Id không tồn tại trong danh sách",
+                message: "Mã phòng không tồn tại!",
+                content:null,
                 dateTime: jsonDate
             }
         }
@@ -300,7 +303,8 @@ export class PhongThueService {
         if (checkId === null) {
             return {
                 statusCode: 403,
-                message: "Mã Id không tồn tại trong danh sách",
+                message: "Mã phòng không tồn tại!",
+                content:null,
                 dateTime: jsonDate
             }
         } else {
@@ -313,28 +317,29 @@ export class PhongThueService {
                 }
             })
             let updateUser = await this.prisma.phong.findFirst({
-                where:{id:idParam}
+                where: { id: idParam }
             })
 
             return {
                 statusCode: 201,
                 message: "Chỉnh sửa thành công",
-                content:updateUser,
+                content: updateUser,
                 dateTime: jsonDate
             }
         }
     }
 
+
     //XÓA THÔNG TIN PHÒNG
     async xoaPhong(idDelete: number): Promise<any> {
-        let checkIdComment = await this.prisma.phong.findFirst({
+        let checkIdPhong = await this.prisma.phong.findFirst({
             where: {
                 id: idDelete
             }
         })
         let jsonDate = (new Date()).toJSON();
         try {
-            if (checkIdComment.id !== null) {
+            if (checkIdPhong.id !== null) {
                 await this.prisma.phong.delete({
                     where: {
                         id: idDelete
@@ -343,7 +348,8 @@ export class PhongThueService {
                 return {
                     data: {
                         statusCode: 201,
-                        content: "Xóa thông tin phòng thành công",
+                        message: "Xóa thông tin phòng thành công",
+                        content: null,
                         dateTime: jsonDate
                     }
                 }
@@ -351,11 +357,45 @@ export class PhongThueService {
                 return false
             }
         } catch (err) {
-            return {
-                data: {
+            if (checkIdPhong === null) {
+                return {
                     statusCode: 404,
-                    content: "Phòng này đã xóa hoặc chưa từng tồn tại",
+                    message: "Mã phòng không tồn tại",
+                    content: null,
                     dateTime: jsonDate
+                }
+            }
+            let checkRoomIdCommentTb = await this.prisma.binhLuan.findMany({
+                where: { ma_phong: idDelete }
+            })
+            let checkRoomIdRoomBookingTb = await this.prisma.datPhong.findMany({
+                where: { ma_phong: idDelete }
+            })
+            if (checkRoomIdCommentTb !== null) {
+                return {
+                    statusCode: 400,
+                    message: "Mã phòng không xóa được vì đã có người bình luận",
+                    data: null,
+                    dateTime: jsonDate
+                }
+            }
+            if (checkRoomIdRoomBookingTb !== null) {
+                return {
+                    statusCode: 400,
+                    message: "Mã phòng không xóa được vì đã có người đặt phòng",
+                    data: null,
+                    dateTime: jsonDate
+                }
+            }
+            else {
+
+                return {
+                    data: {
+                        statusCode: 400,
+                        message: "Xóa thất bại",
+                        data: null,
+                        dateTime: jsonDate
+                    }
                 }
             }
         }
@@ -363,19 +403,19 @@ export class PhongThueService {
     }
 
     //Upload HINH PHONG
-    async uploadHinhPhong(maPhong:number,filename:string):Promise<any>{
+    async uploadHinhPhong(maPhong: number, filename: string): Promise<any> {
         await this.prisma.phong.update({
-            data:{hinh_anh:filename},
-            where:{
-                id:maPhong
+            data: { hinh_anh: filename },
+            where: {
+                id: maPhong
             }
         })
         let jsonDate = (new Date()).toJSON();
         return {
-                statusCode: 201,
-                message: "Cập nhật ảnh thành công",
-                content:filename,
-                dateTime: jsonDate
+            statusCode: 201,
+            message: "Cập nhật ảnh thành công",
+            content: filename,
+            dateTime: jsonDate
         }
-    } 
+    }
 }

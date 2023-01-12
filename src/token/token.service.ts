@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from 'src/dto/token.dto';
@@ -26,8 +26,14 @@ export class TokenService {
             }
         }
         else {
-            console.log("data",data)
+            console.log("data", data)
             let jsonDate = (new Date()).toJSON();
+            throw new HttpException({
+                statusCode: 403,
+                message: "Người dùng không có quyền truy cập",
+                content: "tokenCybersoft không hợp lệ hoặc hết thời hạn",
+                dateTime: jsonDate,
+            }, HttpStatus.FORBIDDEN)
             return {
                 statusCode: 403,
                 message: "Người dùng không có quyền truy cập",
@@ -44,7 +50,7 @@ export class TokenService {
             //case1:không nhập nhưng vẫn trả true
             if (accessToken.token === undefined) {
                 let jsonDate = (new Date()).toJSON();
-                
+
                 return {
                     check: true,
                     logInfo: false,
@@ -68,14 +74,17 @@ export class TokenService {
         } catch (err) {
             let jsonDate = (new Date()).toJSON();
             // console.log("err", err)
-            console.log("checktokenaccess",accessToken.token)
-
+            console.log("checktokenaccess", accessToken.token)
+            throw new HttpException({
+                statusCode: 403,
+                message: "Người dùng không có quyền truy cập",
+                content: "token user hết hạn hoặc không đúng",
+                dateTime: jsonDate,
+            }, HttpStatus.FORBIDDEN)
             return {
-                data: {
-                    statusCode: 403,
-                    content: "token user hết hạn hoặc không đúng",
-                    dateTime: jsonDate
-                }
+                statusCode: 403,
+                content: "token user hết hạn hoặc không đúng",
+                dateTime: jsonDate
             }
         }
     }

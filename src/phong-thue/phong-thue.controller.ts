@@ -1,5 +1,5 @@
 import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from 'src/dto/token.dto';
@@ -8,10 +8,11 @@ import { PhongThueService } from './phong-thue.service';
 import { PhongViewModel } from './dto/phong-thue.dto';
 import { AccessToken } from 'src/dto/tokenAccess.dto';
 import { Request } from 'express';
-import { UploadedFile, UseInterceptors } from '@nestjs/common/decorators';
+import { Res, UploadedFile, UseInterceptors } from '@nestjs/common/decorators';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { FileUploadHinhPhong, UploadHinhPhong } from './dto/uploadHinh.dto';
+import { STATUS_CODES } from 'http';
 
 @ApiTags("PhongThue")
 @Controller('/api')
@@ -36,6 +37,7 @@ export class PhongThueController {
     }
 
     //TẠO PHÒNG MỚI
+    @HttpCode(201)
     @Post("/phong-thue")
     async themPhongMoi(@Body() body: PhongViewModel, @Headers() headers: Token, @Headers() token: AccessToken): Promise<any> {
 

@@ -1,4 +1,4 @@
-import { Injectable, HttpCode } from '@nestjs/common';
+import { Injectable, HttpCode, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt/dist';
 
@@ -13,7 +13,7 @@ export class AuthService {
     private prisma = new PrismaClient();
 
     //signup
-    @HttpCode(201)
+    @HttpCode(200)
     async signup(name: string, email: string, pass_word: string, phone: string, birth_day: string, gender: string, role: string): Promise<any> {
 
         let newUser = await this.prisma.nguoiDung.findFirst({
@@ -24,6 +24,12 @@ export class AuthService {
 
         if (newUser) {
             let jsonDate = (new Date()).toJSON();
+            throw new HttpException({
+                statusCode: 400,
+                message: "Yêu cầu không hợp lệ",
+                content: "Email đã tồn tại",
+                dateTime: jsonDate,
+            },HttpStatus.BAD_REQUEST)
             return {
                 statusCode: 400,
                 message: "Yêu cầu không hợp lệ",

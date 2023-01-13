@@ -39,6 +39,7 @@ export class NguoiDungService {
         // https://stackoverflow.com/questions/70834547/prisma-client-query-for-latest-values-of-each-user
         console.log(checkUser)
         if (checkUser === null) {
+
             await this.prisma.nguoiDung.create({
                 data: {
                     name, email, pass_word, phone, birth_day, gender, role
@@ -48,7 +49,6 @@ export class NguoiDungService {
                 where: {
                     email
                 },
-
             })
             return {
                 statusCode: 201,
@@ -86,18 +86,18 @@ export class NguoiDungService {
                     }
                 })
                 return {
-                    statusCode: 201,
-                    content: "Xóa thông tin nguời dùng thành công",
+                    statusCode: 200,
+                    message: "Xóa thông tin nguời dùng thành công",
+                    data: null,
                     dateTime: jsonDate
                 }
             } else {
-                return {
-                    data: {
-                        statusCode: 403,
-                        content: "Người dùng không tồn tại",
-                        dateTime: jsonDate
-                    }
-                }
+                throw new HttpException({
+                    statusCode: 404,
+                    message: "Người dùng không tồn tại",
+                    data: null,
+                    dateTime: jsonDate
+                }, HttpStatus.NOT_FOUND)
             }
         } catch (err) {
             if (checkIdUser === null) {
@@ -107,13 +107,6 @@ export class NguoiDungService {
                     content: null,
                     dateTime: jsonDate
                 }, HttpStatus.NOT_FOUND)
-                // throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-                // return {
-                //     statusCode: 404,
-                //     message: "Không tìm thấy tài nguyên",
-                //     content: null,
-                //     dateTime: jsonDate
-                // }
             }
             let checkCommentUser = await this.prisma.binhLuan.findFirst({
                 where: { ma_nguoi_binh_luan: idDelete }
@@ -121,7 +114,7 @@ export class NguoiDungService {
             let checkRoomBookUser = await this.prisma.datPhong.findFirst({
                 where: { ma_nguoi_dat: idDelete }
             })
-            if (checkCommentUser.id !== null) {
+            if (checkCommentUser !== null) {
                 throw new HttpException({
                     statusCode: 403,
                     message: 'Xóa thất bại vì người dùng đã tạo bình luận',
@@ -139,14 +132,13 @@ export class NguoiDungService {
             }
             else {
                 throw new HttpException({
-                    statusCode: 400,
+                    statusCode: 403,
                     message: 'Xóa thất bại vì yêu cầu không hợp lệ',
                     content: null,
                     dateTime: jsonDate
-                }, HttpStatus.BAD_REQUEST)
+                }, HttpStatus.FORBIDDEN)
             }
         }
-
 
     }
 
@@ -235,7 +227,7 @@ export class NguoiDungService {
                     }
                     else {
                         return {
-                            statusCode: 404,
+                            statusCode: 202,
                             message: "Không tìm thấy kết quả tương ứng từ khóa",
                             content: {
                                 pageIndex,
@@ -315,8 +307,6 @@ export class NguoiDungService {
                 email: email
             }
         })
-        console.log("checkid", checkId)
-        console.log("checkemail", checkEmail)
         if (checkId === null) {
             throw new HttpException({
                 statusCode: 404,
@@ -328,11 +318,11 @@ export class NguoiDungService {
         //KIỂM TRA KHÔNG CHO PHÉP TRÙNG EMAIL VỚI NGƯỜI DÙNG KHÁC KHI CẬP NHẬT
         if (checkEmail && checkEmail.id !== idParam) {
             throw new HttpException({
-                statusCode: 400,
+                statusCode: 403,
                 message: "Email đã tồn tại trong danh sách",
                 content: null,
                 dateTime: jsonDate
-            }, HttpStatus.BAD_REQUEST)
+            }, HttpStatus.FORBIDDEN)
         }
         else {
 
@@ -349,7 +339,7 @@ export class NguoiDungService {
             })
 
             return {
-                statusCode: 201,
+                statusCode: 200,
                 message: "Chỉnh sửa thành công",
                 content: updateUser,
                 dateTime: jsonDate

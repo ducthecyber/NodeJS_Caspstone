@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete, ParseFilePipeBuilder, HttpStatus, ParseFilePipe, HttpException } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -72,7 +72,7 @@ export class ViTriController {
     async getLocationByPage(@Headers() headers: Token, @Query("pageIndex") pageIndex: number, @Query("pageSize") pageSize: number, @Query("keyWord") keyWord: string): Promise<any> {
         let data = await this.tokenService.checkToken(headers);
         if (data === true) {
-            return this.viTriService.getPhongByPage(Number(pageIndex), Number(pageSize), keyWord)
+            return this.viTriService.getLocationByPage(Number(pageIndex), Number(pageSize), keyWord)
         } else {
             return data
         }
@@ -155,7 +155,7 @@ export class ViTriController {
 
     }
 
-     //SETTING DUONG DAN PHOTO
+    //SETTING DUONG DAN PHOTO
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor("locationPhoto", {
         storage: diskStorage({
@@ -174,8 +174,17 @@ export class ViTriController {
     @ApiHeader({ name: "Token", description: "Nhập access token", required: false })
     @ApiQuery({ name: 'maViTri', required: false, type: Number })
     @Post("/vi-tri/upload-hinh-vitri")
-    async uploadLocationPhoto(@Headers() headers: Token, @Headers() tokenHeader: any,@Query("maViTri") maViTri:number,@UploadedFile() file:UploadHinhViTri): Promise<any> {
+    async uploadLocationPhoto(@Headers() headers: Token, @Headers() tokenHeader: any, @Query("maViTri") maViTri: number,
+        @UploadedFile(
+        )
+
+        file: UploadHinhViTri
+    ): Promise<any> {
         //checkAccessToken khi người dùng đăng nhập
+        console.log("file", file)
+        let jsonDate = (new Date()).toJSON();
+
+
         let checkData = await this.tokenService.checkAccessToken(tokenHeader)
         //nếu tokenAccess có nhập và đúng
         if (checkData.check === true && checkData.logInfo === true) {
@@ -185,8 +194,29 @@ export class ViTriController {
                 let checkAuth = await this.viTriService.checkAuthAccount(Number(userRole))
 
                 if (checkAuth === true) {
-                    return this.viTriService.uploadLocationPhoto(
-                        Number(maViTri),file.filename)
+                    if (+file.size > 500000) {
+                        throw new HttpException({
+                            statusCode: 400,
+                            message: "Chỉ có thể upload file nhỏ hơn 500KB",
+                            content: null,
+                            dateTime: jsonDate
+                        }, HttpStatus.BAD_REQUEST)
+                    }
+                    if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/jpg" && file.mimetype !== "image/png") {
+                        throw new HttpException({
+                            statusCode: 400,
+                            message: "Chỉ có thể upload file dưới định dạng jpg/jpg/png",
+                            content: null,
+                            dateTime: jsonDate
+                        }, HttpStatus.BAD_REQUEST)
+                    }
+                    if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg" || file.mimetype === "image/png") {
+                        return this.viTriService.uploadLocationPhoto(
+                            Number(maViTri), file.filename)
+                    }
+                    else {
+                        return false
+                    }
                 }
                 else {
                     return checkAuth.data
@@ -199,7 +229,6 @@ export class ViTriController {
         else {
             return checkData.data
         }
-
 
     }
 }

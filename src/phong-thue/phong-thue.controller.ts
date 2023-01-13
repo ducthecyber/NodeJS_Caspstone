@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -82,7 +82,7 @@ export class PhongThueController {
     //LẤY PHÒNG THUÊ THEO PHÂN TRANG
     @ApiQuery({ name: 'pageIndex', required: false, type: Number })
     @ApiQuery({ name: 'pageSize', required: false, type: Number })
-    @ApiQuery({ name: 'keyWord', required: false, type: String })
+    @ApiQuery({ name: 'keyWord', required: false, type: String,description:"Search theo tên phòng hoặc mô tả" })
 
     @Get("/phong-thue/phan-trang-tim-kiem")
     async getPhongByPage(@Headers() headers: Token, @Query("pageIndex") pageIndex: number, @Query("pageSize") pageSize: number, @Query("keyWord") keyWord: string): Promise<any> {
@@ -194,6 +194,8 @@ export class PhongThueController {
     @Post("/phong-thue/upload-hinh-phong")
     async uploadHinhPhong(@Headers() headers: Token, @Headers() tokenHeader: any,@Query("maPhong") maPhong:number,@UploadedFile() file:UploadHinhPhong): Promise<any> {
         //checkAccessToken khi người dùng đăng nhập
+        let jsonDate = (new Date()).toJSON();
+
         let checkData = await this.tokenService.checkAccessToken(tokenHeader)
         //nếu tokenAccess có nhập và đúng
         if (checkData.check === true && checkData.logInfo === true) {
@@ -203,8 +205,26 @@ export class PhongThueController {
                 let checkAuth = await this.datPhongService.checkAuthAccount(Number(userRole))
 
                 if (checkAuth === true) {
-                    return this.datPhongService.uploadHinhPhong(
-                        Number(maPhong),file.filename)
+                    if (+file.size > 500000) {
+                        throw new HttpException({
+                            statusCode: 400,
+                            message: "Chỉ có thể upload file nhỏ hơn 500KB",
+                            content: null,
+                            dateTime: jsonDate
+                        }, HttpStatus.BAD_REQUEST)
+                    }
+                    if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/jpg" && file.mimetype !== "image/png") {
+                        throw new HttpException({
+                            statusCode: 400,
+                            message: "Chỉ có thể upload file dưới định dạng jpg/jpg/png",
+                            content: null,
+                            dateTime: jsonDate
+                        }, HttpStatus.BAD_REQUEST)
+                    }
+                    if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg" || file.mimetype === "image/png") {
+                        return this.datPhongService.uploadHinhPhong(
+                            Number(maPhong),file.filename)
+                    }
                 }
                 else {
                     return checkAuth.data

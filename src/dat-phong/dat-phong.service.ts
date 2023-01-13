@@ -1,4 +1,4 @@
-import { HttpCode, Injectable } from '@nestjs/common';
+import { HttpCode, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
@@ -20,6 +20,7 @@ export class DatPhongService {
 
         return {
             statusCode: 200,
+            message: "Lấy thông tin thành công",
             content: data,
             dateTime: jsonDate
         }
@@ -34,11 +35,12 @@ export class DatPhongService {
         })
         let jsonDate = (new Date()).toJSON();
         if (checkId === null) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
-                message: "Mã Id không tồn tại trong danh sách",
+                message: "Mã đặt phòng không tồn tại trong danh sách",
+                content:null,
                 dateTime: jsonDate
-            }
+            },HttpStatus.NOT_FOUND)
         }
         else {
             let data = await this.prisma.datPhong.findFirst({
@@ -78,38 +80,54 @@ export class DatPhongService {
         }
     }
 
-    // thêm phòng mới
-    @HttpCode(201)
+    // thêm đặt phòng mới
     async themDatPhongMoi(id: number, ma_phong: number, dateArrive: any, dateLeave: any, so_luong_khach: number, ma_nguoi_dat: number): Promise<any> {
-        // Query createOnePhong is required to return data, but found no record(s).có thể xảy ra khi id truyền vào là 0
-        await this.prisma.datPhong.create({
-            data: {
-                ma_phong, ngay_den: dateArrive, ngay_di: dateLeave, so_luong_khach, ma_nguoi_dat
-            }
-        })
-        // https://stackoverflow.com/questions/70834547/prisma-client-query-for-latest-values-of-each-user
-        let newBooking = await this.prisma.datPhong.findFirst({
-            where: {
-                ma_phong
-            },
-            // distinct: ['ma_nguoi_binh_luan'],
-            orderBy: {
-                id: 'desc'
-            }
-        })
         let jsonDate = (new Date()).toJSON();
-        return {
-            statusCode: 201,
-            message: "Thêm đặt phòng mới thành công",
-            content: {
-                id: newBooking.id,
-                ma_phong,
-                ngay_den: dateArrive,
-                ngay_di: dateLeave,
-                so_luong_khach,
-                ma_nguoi_dat,
-            },
-            dateTime: jsonDate
+
+        try {
+            let checkAuthRoomId = await this.checkAuthRoomId(ma_phong)
+            let checkAuthUserId = await this.checkAuthUserId(ma_nguoi_dat)
+            // Query createOnePhong is required to return data, but found no record(s).có thể xảy ra khi id truyền vào là 0
+            if (checkAuthRoomId && checkAuthUserId) {
+                await this.prisma.datPhong.create({
+                    data: {
+                        ma_phong, ngay_den: dateArrive, ngay_di: dateLeave, so_luong_khach, ma_nguoi_dat
+                    }
+                })
+                // https://stackoverflow.com/questions/70834547/prisma-client-query-for-latest-values-of-each-user
+                let newBooking = await this.prisma.datPhong.findFirst({
+                    where: {
+                        ma_phong
+                    },
+                    // distinct: ['ma_nguoi_binh_luan'],
+                    orderBy: {
+                        id: 'desc'
+                    }
+                })
+                return {
+                    statusCode: 201,
+                    message: "Thêm đặt phòng mới thành công",
+                    content: {
+                        id: newBooking.id,
+                        ma_phong,
+                        ngay_den: dateArrive,
+                        ngay_di: dateLeave,
+                        so_luong_khach,
+                        ma_nguoi_dat,
+                    },
+                    dateTime: jsonDate
+                }
+            } else {
+                return false
+            }
+        }
+        catch {
+            throw new HttpException({
+                statusCode: 404,
+                message: "Kiểm tra lại mã người dùng hoặc mã phòng",
+                content: null,
+                dateTime: jsonDate
+            }, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -135,50 +153,49 @@ export class DatPhongService {
                 }
             })
             return {
-                statusCode: 201,
+                statusCode: 200,
                 message: "Chỉnh sửa thành công",
                 content: updateDatPhong,
                 dateTime: jsonDate
             }
         }
         if (!checkAuthBookingId.check) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã đặt phòng không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
         if (!checkAuthUserId.check) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã người đặt không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
         if (!checkAuthRoomId.check) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã phòng không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
         else {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Please. Kiểm tra lại những mã truyền vào",
+                content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
 
     }
 
     //CHECK HỢP LỆ MÃ NGƯỜI ĐẶT
     async checkAuthUserId(ma_nguoi_dat: number,): Promise<any> {
-
-        let jsonDate = (new Date()).toJSON();
 
         let checkId = await this.prisma.nguoiDung.findFirst({
             where: {
@@ -218,7 +235,7 @@ export class DatPhongService {
 
     }
 
-    //CHECK HỢP LỆ MÃ ĐẶT PHÒNG
+    //CHECK HỢP LỆ MÃ PHÒNG
     async checkAuthRoomId(ma_phong: number): Promise<any> {
 
         let checkId = await this.prisma.phong.findFirst({
@@ -258,144 +275,24 @@ export class DatPhongService {
                     dateTime: jsonDate
                 }
             } else {
-                return {
+                throw new HttpException({
                     statusCode: 404,
                     message: "Người dùng chưa đặt phòng",
                     content: null,
                     dateTime: jsonDate
-                }
+                }, HttpStatus.BAD_REQUEST)
             }
         }
         else {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã người dùng không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.BAD_REQUEST)
         }
 
     }
-
-    //LẤY DANH SÁCH PHÒNG THEO PHÂN TRANG
-    async getPhongByPage(pageIndex: number, pageSize: number, keyWord: string): Promise<any> {
-
-
-        let jsonDate = (new Date()).toJSON();
-        try {
-            if (keyWord === undefined) {
-
-                let data = await this.prisma.phong.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    orderBy: { id: 'desc' }
-                })
-                let totalRow = await this.prisma.phong.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                })
-                console.log("total", data.length)
-                if (data.length > 0) {
-                    return {
-                        statusCode: 200,
-                        content: {
-                            pageIndex,
-                            pageSize,
-                            totalRow,
-                            keyWord,
-                            data
-                        },
-                        dateTime: jsonDate
-                    }
-                }
-                else {
-                    return {
-                        statusCode: 400,
-                        message: "Yêu cầu không hợp lệ",
-                        content: "Số trang và số lượng phần tử phải lớn hơn 0",
-                        dateTime: jsonDate
-                    }
-                }
-            }
-            else {
-                let totalRow = await this.prisma.phong.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-
-                    where: {
-                        OR: [
-                            {
-                                mo_ta: {
-                                    contains: keyWord
-                                },
-                            },
-                            {
-                                ten_phong: {
-                                    contains: keyWord
-                                }
-                            },
-
-                        ]
-                    },
-                })
-                let data = await this.prisma.phong.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    where: {
-                        OR: [
-                            {
-                                mo_ta: {
-                                    contains: keyWord
-                                },
-                            },
-
-                            {
-                                ten_phong: {
-                                    contains: keyWord
-                                }
-                            },
-
-                        ]
-                    },
-                    orderBy: { id: 'desc' }
-                })
-                console.log("total", data.length)
-
-                if (data.length > 0) {
-                    return {
-                        statusCode: 200,
-                        content: {
-                            pageIndex,
-                            pageSize,
-                            totalRow,
-                            keyWord,
-                            data
-                        },
-                        dateTime: jsonDate
-                    }
-                }
-
-                else {
-                    return {
-                        statusCode: 404,
-                        message: "Không tìm thấy kết quả phù hợp",
-                        content: data,
-                        dateTime: jsonDate
-                    }
-                }
-            }
-
-        } catch {
-
-            return {
-                statusCode: 400,
-                message: "Yêu cầu không hợp lệ",
-                content: "Số trang và số phần tử phải lớn 0 và không vượt quá giá trị cơ sở dữ liệu",
-                dateTime: jsonDate
-            }
-        }
-    }
-
 
     //XÓA THÔNG TIN PHÒNG
     async xoaDatPhong(idDelete: number): Promise<any> {
@@ -409,39 +306,22 @@ export class DatPhongService {
             })
             return {
                 data: {
-                    statusCode: 201,
+                    statusCode: 200,
                     message: "Xóa thông tin đặt phòng thành công",
                     content: null,
                     dateTime: jsonDate
                 }
             }
         } else {
-            return {
-                data: {
-                    statusCode: 404,
-                    message: "Mã đặt phòng này đã xóa hoặc chưa từng tồn tại",
-                    content: undefined,
-                    dateTime: jsonDate
-                }
-            }
+            throw new HttpException({
+                statusCode: 404,
+                message: "Mã đặt phòng này đã xóa hoặc chưa từng tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }, HttpStatus.NOT_FOUND)
+
         }
 
     }
 
-    //Upload HINH PHONG
-    async uploadHinhPhong(maPhong: number, filename: string): Promise<any> {
-        await this.prisma.phong.update({
-            data: { hinh_anh: filename },
-            where: {
-                id: maPhong
-            }
-        })
-        let jsonDate = (new Date()).toJSON();
-        return {
-            statusCode: 201,
-            message: "Cập nhật ảnh thành công",
-            content: filename,
-            dateTime: jsonDate
-        }
-    }
 }

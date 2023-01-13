@@ -1,5 +1,5 @@
 import { Controller, HttpException, Post, NotFoundException, HttpStatus, ValidationPipe, ForbiddenException } from '@nestjs/common';
-import { Headers, Param, Query, UseGuards, Body, Req } from '@nestjs/common/decorators';
+import { Headers, Param, Query, UseGuards, Body, Req, HttpCode } from '@nestjs/common/decorators';
 import { ParameterObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 // import { Body, Post } from '@nestjs/common/decorators';
 import { ConfigService } from '@nestjs/config';
@@ -23,6 +23,7 @@ export class AuthController {
     ) { }
 
     //SIGNUP
+    @HttpCode(201)
     @Post("/signup")
     // @ApiHeader({
     //     name: 'tokenCybersoft',
@@ -38,12 +39,6 @@ export class AuthController {
     )
         : Promise<any> {
         let data = await this.tokenService.checkToken(headers)
-        // let data: any = await this.jwt.decode(headers.tokencybersoft);
-        // let dNow: Date = new Date();
-        // let dToken: Date = new Date(Number(data.HetHanTime));
-
-        // if (dNow > dToken)
-        //     throw new ForbiddenException("Không có quyền truy cập");
         if (data == true) {
             const { name, email, pass_word, phone, birth_day, gender, role } = body;
             return this.authService.signup(name, email, pass_word, phone, birth_day, gender, role)
@@ -76,7 +71,10 @@ export class AuthController {
                 }
             }
             else {
-                throw new HttpException(checkLogin.data, HttpStatus.NOT_FOUND);
+                throw new HttpException({
+                    statusCode:404,
+                    message:checkLogin.data,
+                }, HttpStatus.NOT_FOUND);
             }
         }
         else {

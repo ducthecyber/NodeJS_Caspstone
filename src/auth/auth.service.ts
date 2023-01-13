@@ -15,7 +15,7 @@ export class AuthService {
     //signup
     @HttpCode(200)
     async signup(name: string, email: string, pass_word: string, phone: string, birth_day: string, gender: string, role: string): Promise<any> {
-
+        let jsonDate = (new Date()).toJSON();
         let newUser = await this.prisma.nguoiDung.findFirst({
             where: {
                 email: email
@@ -30,12 +30,6 @@ export class AuthService {
                 content: "Email đã tồn tại",
                 dateTime: jsonDate,
             },HttpStatus.BAD_REQUEST)
-            return {
-                statusCode: 400,
-                message: "Yêu cầu không hợp lệ",
-                content: "Email đã tồn tại",
-                dateTime: jsonDate,
-            }
         } else {
 
             await this.prisma.nguoiDung.create({
@@ -52,7 +46,7 @@ export class AuthService {
 
             return {
                 "message": "Sign up success",
-                "statusCode": 200,
+                "statusCode": 201,
                 "content": {
                     id: createdUser.id,
                     name,
@@ -62,7 +56,8 @@ export class AuthService {
                     birth_day,
                     gender,
                     role
-                }
+                },
+                "dateTime":jsonDate
             }
         }
     }

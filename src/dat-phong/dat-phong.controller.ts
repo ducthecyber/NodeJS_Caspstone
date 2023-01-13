@@ -35,6 +35,7 @@ export class DatPhongController {
     }
 
     //TẠO ĐẶT PHÒNG MỚI
+    @HttpCode(201)
     @Post("/dat-phong")
     async themPhongMoi(@Body() body: DatPhongViewModel, @Headers() headers: Token): Promise<any> {
 
@@ -63,7 +64,6 @@ export class DatPhongController {
             return data
         }
     }
-
 
     //CHỈNH SỬA THÔNG TIN ĐẶT PHÒNG
     @Put("/dat-phong/:id")
@@ -115,72 +115,3 @@ export class DatPhongController {
 
 
 
-//LẤY PHÒNG THUÊ THEO PHÂN TRANG
-// @ApiQuery({ name: 'pageIndex', required: false, type: Number })
-// @ApiQuery({ name: 'pageSize', required: false, type: Number })
-// @ApiQuery({ name: 'keyWord', required: false, type: String })
-
-// @Get("/phong-thue/phan-trang-tim-kiem")
-// async getPhongByPage(@Headers() headers: Token, @Query("pageIndex") pageIndex: number, @Query("pageSize") pageSize: number, @Query("keyWord") keyWord: string): Promise<any> {
-//     let data = await this.tokenService.checkToken(headers);
-//     if (data === true) {
-//         return this.datPhongService.getPhongByPage(Number(pageIndex), Number(pageSize), keyWord)
-//     } else {
-//         return data
-//     }
-// }
-
-
-
-
-
-
-
-    // //SETTING DUONG DAN PHOTO
-    // @ApiConsumes('multipart/form-data')
-    // @UseInterceptors(FileInterceptor("roomPhoto", {
-    //     storage: diskStorage({
-    //         destination: "src/public/img",
-    //         filename(req, file, callback) {
-    //             let date = new Date();
-    //             callback(null, `${date.getTime()}-${file.originalname}`);
-    //         },
-    //     })
-    // }))
-    // @ApiBody({
-    //     description: 'roomPhoto',
-    //     type: FileUploadHinhPhong,
-    // })
-    // //UPLOAD HIH PHONG
-    // @ApiHeader({ name: "Token", description: "Nhập access token", required: false })
-    // @ApiQuery({ name: 'maPhong', required: false, type: Number })
-    // @Post("/phong-thue/upload-hinh-phong")
-    // async uploadHinhPhong(@Headers() headers: Token, @Headers() tokenHeader: any,@Query("maPhong") maPhong:number,@UploadedFile() file:UploadHinhPhong): Promise<any> {
-    //     //checkAccessToken khi người dùng đăng nhập
-    //     let checkData = await this.tokenService.checkAccessToken(tokenHeader)
-    //     //nếu tokenAccess có nhập và đúng
-    //     if (checkData.check === true && checkData.logInfo === true) {
-    //         let data = await this.tokenService.checkToken(headers);
-    //         if (data === true) {
-    //             let userRole = checkData.info.id
-    //             let checkAuth = await this.datPhongService.checkAuthAccount(Number(userRole))
-
-    //             if (checkAuth === true) {
-    //                 return this.datPhongService.uploadHinhPhong(
-    //                     Number(maPhong),file.filename)
-    //             }
-    //             else {
-    //                 return checkAuth.data
-    //             }
-    //         }
-    //         else {
-    //             return this.tokenService.checkToken(headers)
-    //         }
-    //     }
-    //     else {
-    //         return checkData.data
-    //     }
-
-
-    // }
-// }

@@ -115,18 +115,19 @@ export class PhongThueService {
         if (data.length > 0 && checkListViTri !== null) {
             return {
                 statusCode: 200,
+                message: "Lấy thông tin thành công",
                 content: data,
                 dateTime: jsonDate
             }
         }
 
         if (data.length === 0 && checkListViTri !== null) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã vị trí chưa đặt phòng",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
         else {
             throw new HttpException({
@@ -141,7 +142,6 @@ export class PhongThueService {
 
     //LẤY DANH SÁCH PHÒNG THEO PHÂN TRANG
     async getPhongByPage(pageIndex: number, pageSize: number, keyWord: string): Promise<any> {
-
         let jsonDate = (new Date()).toJSON();
 
         try {
@@ -188,8 +188,8 @@ export class PhongThueService {
                         },
                     })
                     let data = await this.prisma.phong.findMany({
-                        skip: (pageIndex - 1) * pageSize,
-                        take: pageSize,
+                        // skip: (pageIndex - 1) * pageSize,
+                        // take: pageSize,
                         orderBy: { id: 'asc' },
                         where: {
                             OR: [
@@ -208,7 +208,7 @@ export class PhongThueService {
                             ]
                         },
                     })
-                    if(data.length>0){
+                    if (data.length > 0) {
                         return {
                             statusCode: 200,
                             message: "Lấy thông tin thành công",
@@ -222,9 +222,10 @@ export class PhongThueService {
                             dateTime: jsonDate
                         }
                     }
-                    else{
-                        return{
-                            statusCode: 404,
+                    else {
+
+                        return {
+                            statusCode: 200,
                             message: "Không tìm thấy kết quả tương ứng từ khóa",
                             content: {
                                 pageIndex,
@@ -233,7 +234,7 @@ export class PhongThueService {
                                 keyWord,
                                 data
                             },
-                            dateTime: jsonDate  
+                            dateTime: jsonDate
                         }
                     }
                 }
@@ -267,12 +268,12 @@ export class PhongThueService {
         })
         let jsonDate = (new Date()).toJSON();
         if (checkId === null) {
-            return {
-                statusCode: 403,
+            throw new HttpException({
+                statusCode: 404,
                 message: "Mã phòng không tồn tại!",
-                content:null,
+                content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         }
         else {
             let data = await this.prisma.phong.findFirst({
@@ -301,12 +302,12 @@ export class PhongThueService {
             }
         })
         if (checkId === null) {
-            return {
+            throw new HttpException({
                 statusCode: 403,
                 message: "Mã phòng không tồn tại!",
-                content:null,
+                content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
         } else {
             await this.prisma.phong.update({
                 data: {
@@ -321,7 +322,7 @@ export class PhongThueService {
             })
 
             return {
-                statusCode: 201,
+                statusCode: 200,
                 message: "Chỉnh sửa thành công",
                 content: updateUser,
                 dateTime: jsonDate
@@ -347,7 +348,7 @@ export class PhongThueService {
                 })
                 return {
                     data: {
-                        statusCode: 201,
+                        statusCode: 200,
                         message: "Xóa thông tin phòng thành công",
                         content: null,
                         dateTime: jsonDate
@@ -358,12 +359,12 @@ export class PhongThueService {
             }
         } catch (err) {
             if (checkIdPhong === null) {
-                return {
+                throw new HttpException({
                     statusCode: 404,
                     message: "Mã phòng không tồn tại",
                     content: null,
                     dateTime: jsonDate
-                }
+                }, HttpStatus.NOT_FOUND)
             }
             let checkRoomIdCommentTb = await this.prisma.binhLuan.findMany({
                 where: { ma_phong: idDelete }
@@ -371,32 +372,32 @@ export class PhongThueService {
             let checkRoomIdRoomBookingTb = await this.prisma.datPhong.findMany({
                 where: { ma_phong: idDelete }
             })
-            if (checkRoomIdCommentTb !== null) {
-                return {
-                    statusCode: 400,
+            console.log("comment",checkRoomIdCommentTb)
+            console.log("room",checkRoomIdRoomBookingTb)
+            if (checkRoomIdCommentTb.length >0) {
+                throw new HttpException({
+                    statusCode: 403,
                     message: "Mã phòng không xóa được vì đã có người bình luận",
                     data: null,
                     dateTime: jsonDate
-                }
+                }, HttpStatus.FORBIDDEN)
             }
-            if (checkRoomIdRoomBookingTb !== null) {
-                return {
-                    statusCode: 400,
+    
+            if (checkRoomIdRoomBookingTb.length >0) {
+                throw new HttpException({
+                    statusCode: 403,
                     message: "Mã phòng không xóa được vì đã có người đặt phòng",
                     data: null,
                     dateTime: jsonDate
-                }
+                }, HttpStatus.FORBIDDEN)
             }
             else {
-
-                return {
-                    data: {
-                        statusCode: 400,
-                        message: "Xóa thất bại",
-                        data: null,
-                        dateTime: jsonDate
-                    }
-                }
+                throw new HttpException({
+                    statusCode: 400,
+                    message: "Xóa thất bại",
+                    data: null,
+                    dateTime: jsonDate
+                }, HttpStatus.NOT_FOUND)
             }
         }
 

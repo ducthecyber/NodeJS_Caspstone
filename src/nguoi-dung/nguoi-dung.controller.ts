@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Headers, Param, Post, Body, HttpCode, Req, Query, Put, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -97,7 +97,7 @@ export class NguoiDungController {
     }
 
     //CHỈNH SỬA THÔNG TIN NGƯỜI DÙNG
-    @HttpCode(201)
+    @HttpCode(200)
     @Put("/users/:id")
     async chinhSuaInfoPhong(@Headers() headers: Token, @Param("id") idParam: number, @Body() body: CapNhatNguoiDung): Promise<any> {
 
@@ -147,16 +147,33 @@ export class NguoiDungController {
     @Post("/users/upload-avatar")
     async uploadHinhAvatar(@Headers() headers: Token, @Headers() tokenHeader: any, @UploadedFile() file: UploadHinhAvatar): Promise<any> {
         //checkAccessToken khi người dùng đăng nhập
+        let jsonDate = (new Date()).toJSON();
         let checkData = await this.tokenService.checkAccessToken(tokenHeader)
         //nếu tokenAccess có nhập và đúng
         if (checkData.check === true && checkData.logInfo === true) {
             let data = await this.tokenService.checkToken(headers);
             if (data === true) {
                 let userId = checkData.info.id
-
-                return this.nguoiDungService.uploadHinhAvatar(
-                    Number(userId), file.filename)
-
+                if (+file.size > 500000) {
+                    throw new HttpException({
+                        statusCode: 400,
+                        message: "Chỉ có thể upload file nhỏ hơn 500KB",
+                        content: null,
+                        dateTime: jsonDate
+                    }, HttpStatus.BAD_REQUEST)
+                }
+                if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/jpg" && file.mimetype !== "image/png") {
+                    throw new HttpException({
+                        statusCode: 400,
+                        message: "Chỉ có thể upload file dưới định dạng jpg/jpg/png",
+                        content: null,
+                        dateTime: jsonDate
+                    }, HttpStatus.BAD_REQUEST)
+                }
+                if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg" || file.mimetype === "image/png") {
+                    return this.nguoiDungService.uploadHinhAvatar(
+                        Number(userId), file.filename)
+                }
             }
             else {
                 return this.tokenService.checkToken(headers)

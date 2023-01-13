@@ -10,8 +10,9 @@ import { AuthService } from 'src/auth/auth.service';
 import { TokenSignIn } from 'src/dto/tokenSignIn.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Delete, Put } from '@nestjs/common/decorators';
+import { Delete, HttpCode, Put } from '@nestjs/common/decorators';
 import { check } from 'prettier';
+import { HttpAdapterHost } from '@nestjs/core';
 
 @ApiTags("BinhLuan")
 @Controller('/api')
@@ -39,6 +40,7 @@ export class BinhLuanController {
     }
 
     //POST THÊM MỚI BÌNH LUẬN
+    @HttpCode(201)
     @Post("/binh-luan")
     @ApiHeader({ name: "Token", description: "Nhập access token", required: false })
     // @UseGuards(AuthGuard("jwt"))
@@ -82,15 +84,10 @@ export class BinhLuanController {
             if (data === true) {
                 const { ma_phong, ma_nguoi_binh_luan, ngay_binh_luan, noi_dung, sao_binh_luan } = body;
                 const date = new Date(ngay_binh_luan);
-                let checkAuth = await this.binhLuanService.checkAuthAccount(Number(ma_nguoi_binh_luan))
 
-                if (checkAuth === true) {
-                    return this.binhLuanService.chinhSuaBinhLuan(
-                        Number(idParam), ma_phong, ma_nguoi_binh_luan, date, noi_dung, sao_binh_luan)
-                }
-                else {
-                    return checkAuth.data
-                }
+                return this.binhLuanService.chinhSuaBinhLuan(
+                    Number(idParam), ma_phong, ma_nguoi_binh_luan, date, noi_dung, sao_binh_luan)
+
             }
             else {
                 return this.tokenService.checkToken(headers)
@@ -99,7 +96,6 @@ export class BinhLuanController {
         else {
             return checkData.data
         }
-
 
     }
 

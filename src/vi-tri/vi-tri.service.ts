@@ -1,4 +1,4 @@
-import { HttpCode, Injectable } from '@nestjs/common';
+import { HttpCode, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
@@ -98,24 +98,23 @@ export class ViTriService {
     }
 
     //LẤY DANH SÁCH VỊ TRÍ THEO PHÂN TRANG
-    async getPhongByPage(pageIndex: number, pageSize: number, keyWord: string): Promise<any> {
+    async getLocationByPage(pageIndex: number, pageSize: number, keyWord: string): Promise<any> {
         let jsonDate = (new Date()).toJSON();
-        try {
-            if (keyWord === undefined) {
 
-                let data = await this.prisma.viTri.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    orderBy: { id: 'asc' }
-                })
-                let totalRow = await this.prisma.viTri.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                })
-                // console.log("total", data.length)
-                if (data.length > 0) {
+        try {
+            if (pageIndex !== 0 && pageSize !== 0) {
+                if (keyWord === undefined) {
+                    let totalRow = await this.prisma.viTri.count({
+                    })
+                    // https://stackoverflow.com/questions/8701660/pagination-using-skip-and-take-methods
+                    let data = await this.prisma.viTri.findMany({
+                        skip: (pageIndex - 1) * pageSize,
+                        take: pageSize,
+                        orderBy: { id: 'asc' }
+                    })
                     return {
                         statusCode: 200,
+                        message: "Lấy thông tin thành công",
                         content: {
                             pageIndex,
                             pageSize,
@@ -125,89 +124,94 @@ export class ViTriService {
                         },
                         dateTime: jsonDate
                     }
+
                 }
                 else {
-                    return {
-                        statusCode: 400,
-                        message: "Yêu cầu không hợp lệ",
-                        content: "Số trang và số lượng phần tử phải lớn hơn 0",
-                        dateTime: jsonDate
+                    let totalRow = await this.prisma.viTri.count({
+                        where: {
+                            OR: [
+                                {
+                                    ten_vi_tri: {
+                                        contains: keyWord
+                                    },
+                                },
+                                {
+                                    quoc_gia: {
+                                        contains: keyWord
+                                    }
+                                },
+
+                            ]
+                        },
+                    })
+                    let data = await this.prisma.viTri.findMany({
+                        // skip: (pageIndex - 1) * pageSize,
+                        // take: pageSize,
+                        orderBy: { id: 'asc' },
+                        where: {
+                            OR: [
+                                {
+                                    ten_vi_tri: {
+                                        contains: keyWord
+                                    },
+                                },
+
+                                {
+                                    quoc_gia: {
+                                        contains: keyWord
+                                    }
+                                },
+
+                            ]
+                        },
+                    })
+                    if (data.length > 0) {
+                        return {
+                            statusCode: 200,
+                            message: "Lấy thông tin thành công",
+                            content: {
+                                pageIndex,
+                                pageSize,
+                                totalRow,
+                                keyWord,
+                                data
+                            },
+                            dateTime: jsonDate
+                        }
+                    }
+                    else {
+                        return {
+                            statusCode: 200,
+                            message: "Không tìm thấy kết quả tương ứng từ khóa",
+                            content: {
+                                pageIndex,
+                                pageSize,
+                                totalRow,
+                                keyWord,
+                                data
+                            },
+                            dateTime: jsonDate
+                        }
                     }
                 }
             }
             else {
-                let totalRow = await this.prisma.viTri.count({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-
-                    where: {
-                        OR: [
-                            {
-                                ten_vi_tri: {
-                                    contains: keyWord
-                                },
-                            },
-                            {
-                                quoc_gia: {
-                                    contains: keyWord
-                                }
-                            },
-                        ]
-                    },
-                })
-                let data = await this.prisma.viTri.findMany({
-                    skip: pageIndex - 1,
-                    take: pageSize,
-                    where: {
-                        OR: [
-                            {
-                                ten_vi_tri: {
-                                    contains: keyWord
-                                },
-                            },
-                            {
-                                quoc_gia: {
-                                    contains: keyWord
-                                }
-                            },
-                        ]
-                    },
-                    orderBy: { id: 'asc' }
-                })
-                console.log("total", data.length)
-
-                if (data.length > 0) {
-                    return {
-                        statusCode: 200,
-                        content: {
-                            pageIndex,
-                            pageSize,
-                            totalRow,
-                            keyWord,
-                            data
-                        },
-                        dateTime: jsonDate
-                    }
-                }
-
-                else {
-                    return {
-                        statusCode: 404,
-                        message: "Không tìm thấy kết quả phù hợp",
-                        content: data,
-                        dateTime: jsonDate
-                    }
-                }
+                throw new HttpException({
+                    statusCode: 400,
+                    message: "Yêu cầu không hợp lệ",
+                    content: "Số trang và số phần tử phải lớn 0",
+                    dateTime: jsonDate
+                }, HttpStatus.BAD_REQUEST)
             }
+        }
 
-        } catch {
-
-            return {
+        catch {
+            throw new HttpException({
                 statusCode: 400,
                 message: "Yêu cầu không hợp lệ",
-                content: "Số trang và số phần tử phải lớn 0 và không vượt quá giá trị cơ sở dữ liệu",
+                content: "Số trang và số phần tử phải lớn 0",
                 dateTime: jsonDate
-            }
+            }, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -220,12 +224,18 @@ export class ViTriService {
         })
         let jsonDate = (new Date()).toJSON();
         if (checkId === null) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã vị trí không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
+            // return {
+            //     statusCode: 404,
+            //     message: "Mã vị trí không tồn tại",
+            //     content: null,
+            //     dateTime: jsonDate
+            // }
         }
         else {
             let data = await this.prisma.viTri.findFirst({
@@ -254,12 +264,19 @@ export class ViTriService {
             }
         })
         if (checkId === null) {
-            return {
+            throw new HttpException({
                 statusCode: 404,
                 message: "Mã vị trí không tồn tại",
                 content: null,
                 dateTime: jsonDate
-            }
+            }, HttpStatus.NOT_FOUND)
+
+            // return {
+            //     statusCode: 404,
+            //     message: "Mã vị trí không tồn tại",
+            //     content: null,
+            //     dateTime: jsonDate
+            // }
         } else {
             await this.prisma.viTri.update({
                 data: {
@@ -319,14 +336,20 @@ export class ViTriService {
                 where: { ma_vi_tri: idDelete }
             })
             if (checkLocationIdPhongTable !== null) {
-                return {
-                    statusCode: 400,
+                throw new HttpException({
+                    statusCode: 403,
                     message: "Mã vị trí này không xóa được vì có phòng đang dùng",
                     data: null,
                     dateTime: jsonDate
-                }
+                }, HttpStatus.FORBIDDEN)
+                // return {
+                //     statusCode: 400,
+                //     message: "Mã vị trí này không xóa được vì có phòng đang dùng",
+                //     data: null,
+                //     dateTime: jsonDate
+                // }
             }
-            else{
+            else {
                 return false
             }
         }
@@ -337,18 +360,67 @@ export class ViTriService {
 
     //Upload HINH VỊ TRÍ
     async uploadLocationPhoto(maViTri: number, filename: string): Promise<any> {
-        await this.prisma.viTri.update({
-            data: { hinh_anh: filename },
-            where: {
-                id: maViTri
-            }
-        })
         let jsonDate = (new Date()).toJSON();
-        return {
-            statusCode: 201,
-            message: "Cập nhật ảnh thành công",
-            content: filename,
-            dateTime: jsonDate
+        let checkAuthLocationId = await this.checkAuthLocationId(maViTri);
+        //khi checkAuthLocationId đã nhận return false thì nó không nhảy vô try và đi xuống catch luôn
+        try {
+            if (checkAuthLocationId) {
+                await this.prisma.viTri.update({
+                    data: { hinh_anh: filename },
+                    where: {
+                        id: maViTri
+                    }
+                })
+                return {
+                    statusCode: 201,
+                    message: "Cập nhật ảnh thành công",
+                    content: filename,
+                    dateTime: jsonDate
+                }
+            } else {
+                return false
+            }
         }
+        catch {
+            throw new HttpException({
+                statusCode: 400,
+                message: "Mã vị trí không tồn tại",
+                content: null,
+                dateTime: jsonDate
+            }, HttpStatus.BAD_REQUEST)
+        }
+
+    }
+
+    //CHECK HỢP LỆ MÃ vị trí
+    async checkAuthLocationId(ma_vi_tri: number): Promise<any> {
+        let jsonDate = (new Date()).toJSON();
+
+        try {
+            let checkId = await this.prisma.viTri.findFirst({
+                where: {
+                    id: ma_vi_tri
+                }
+            })
+
+            if (checkId === null) {
+                return {
+                    check: false,
+                }
+            } else {
+                return {
+                    check: true,
+                }
+            }
+        }
+        catch {
+            throw new HttpException({
+                statusCode: 400,
+                message: "Vui lòng nhập mã vị trí",
+                content: null,
+                dateTime: jsonDate
+            }, HttpStatus.BAD_REQUEST)
+        }
+
     }
 }

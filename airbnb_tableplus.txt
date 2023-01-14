@@ -9,6 +9,10 @@ CREATE TABLE NguoiDung (
 	role VARCHAR (255)
 )
 
+ALTER TABLE NguoiDung
+ADD COLUMN avatar VARCHAR(255) AFTER role
+
+
 INSERT INTO NguoiDung 
 VALUES (0,"Anderson", "anderson@gmail.com", "and123","0098763","01-01-2020","male","user"),
 		(0,"Benjamin", "benjamin@gmail.com", "ben123","0098763","01-02-2020","male","user"),
@@ -35,6 +39,11 @@ VALUES (0,"Ho Chi Minh", "Nam Bo","Viet Nam","https://a0.muscache.com/im/picture
 	(0,"Gia Lai", "Tay Nguyen","Viet Nam","https://a0.muscache.com/im/pictures/ff2093ab-0017-47ca-99a8-6a499b23c30e.jpg?im_w=720"),
 	(0,"Ha Giang", "Tay Bac","Viet Nam","https://a0.muscache.com/im/pictures/37e36334-55f1-454e-84be-16b7c885102c.jpg?im_w=720"),
 	(0,"Ha Noi", "Bac Bo","Viet Nam","https://a0.muscache.com/im/pictures/miso/Hosting-770114124318740715/original/bcf11488-b3b9-4b51-9796-b72e4eca7f73.jpeg?im_w=720")
+	(0,"Chiang Mai", "Northern Thailand","Thailand","https://a0.muscache.com/im/pictures/miso/Hosting-770114124318740715/original/bcf11488-b3b9-4b51-9796-b72e4eca7f73.jpeg?im_w=720"),
+	(0,"Toronto", "Ontario","Canada","https://a0.muscache.com/im/pictures/21e07620-05b9-48de-abd8-17c3a3281301.jpg?im_w=1200")	,
+	(0,"Taipei", "Ontario","Taiwan","https://a0.muscache.com/im/pictures/c33a15a2-edf0-4567-af33-b7bf04ec58ae.jpg?im_w=1200"),
+	(0,"Söråker", "Västernorrlands län","Sweden","https://a0.muscache.com/im/pictures/b8212870-ce0c-435a-a415-e19e36e865c2.jpg?im_w=1200"),
+	(0,"Mikkeli", "Eastern Findland","Findland","https://a0.muscache.com/im/pictures/58680818/1225053c_original.jpg?im_w=1200")
 	
 
 CREATE TABLE Phong (
@@ -69,7 +78,12 @@ VALUES (0,"Panorama apartment",4,4,4,2," Peaceful, next to beautiful lake\r\nStu
 	(0,"Veque Homflix",2,2,4,1,"An incredible room for a tight budget, gorgeous decoration with 6-star hospitality",46,false,true,true,true,true,false,false,true,true,"https://a0.muscache.com/im/pictures/miso/Hosting-732151647948523523/original/e9119eca-30cd-44c5-adc3-6aca78b130a9.png?im_w=1200",1),
 	(0,"Turtle Eco Luxe Villa",2,4,4,3,"A unique Turtle Shape villa located in natural lotus pond surrounding by nature Khao Tao Valley  and Sai Noi beach. Private one bed room studio villa comprising spacious bathroom and outdoor waterside living deck.",100,false,true,true,true,true,true,true,true,true,"https://a0.muscache.com/im/pictures/26229a9b-9c2c-4e36-bb6c-bf2ee22b1514.jpg?im_w=720",6),	
 	(0,"Treehouse",2,2,4,3,"Get away from the crowded tourist districts to the Northern mountains of Mae Taeng 90 mins from Chiang Mai",200,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/5813338/7c1c4f7c_original.jpg?im_w=1200",4),
-	(0," High Skyline Ocean View",5,5,2,3,"STUNNING OCEAN VIEW ON 21st Floor\r\nA Romantic Place to get away with Special ones",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/1f23e84a-f226-4b5d-9405-ffe291206b13.jpg?im_w=1200",3)
+	(0," High Skyline Ocean View",5,5,2,3,"STUNNING OCEAN VIEW ON 21st Floor\r\nA Romantic Place to get away with Special ones",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/1f23e84a-f226-4b5d-9405-ffe291206b13.jpg?im_w=1200",3),
+	(0," High Skyline Mountain View",5,5,2,3,"STUNNING OCEAN VIEW ON 21st Floor\r\nA Romantic Place to get away with Special ones",500,false,true,true,true,true,true,false,true,false,"https://  		a0.muscache.com/im/pictures/1f23e84a-f226-4b5d-9405-ffe291206b13.jpg?im_w=1200",3),
+	(0," High Skyline Mountain View",5,5,2,3,"This apartment is inside a modern building with shopping mall that include a modern supermarket and is just 2 minutes walk to beach, cinemas, pubs, night market, 5-star hotels such as I ntercontinental, Sheraton, Sunrise,..",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/miso/Hosting-551233403054960877/original/ddc286d5-8f1c-4bc5-984b-4f77cd271191.jpeg?im_w=1200",3),
+	(0," Căn hộ trung tâm tầng cao",5,5,2,3,"This apartment is inside a modern building with shopping mall that include a modern supermarket and is just 2 minutes walk to beach, cinemas, pubs, night market, 5-star hotels such as I ntercontinental, Sheraton, Sunrise,.. ",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/miso/Hosting-551233403054960877/original/ddc286d5-8f1c-4bc5-984b-4f77cd271191.jpeg?im_w=1200",3),
+	(0," Nhà biển Hội An",5,5,2,3,"Biệt thự bãi biển Jack Tran tọa lạc ngay trước bãi biển tại làng chài Bích Hòa Art Village- Bãi biển Tam Thanh, thành phố Tam Kỳ 45 phút lái xe đến phố cổ Hoàn Kiếm. ",500,false,true,true,true,true,true,false,true,false,"https://a0.muscache.com/im/pictures/849d970a-1eb8-402e-8656-6dd8cd14d019.jpg?im_w=1200",4)
+	
 
 
 CREATE TABLE DatPhong (
@@ -114,3 +128,12 @@ VALUES (0,26,1,"2023-12-12","Lovely, cozy, convenient",9),
 (0,30,4,"2023-07-07","Friednly host, good breakfast, beautiful view",10),
 (0,31,4,"2023-07-06","Nice design, close to tourist attractions, affordable prices",10),
 (0,32,5,"2023-08-06","Expensive prices, quiet, adorable bedrom, large couch",7)
+
+
+DELETE FROM `db_airbnb`.`NguoiDung` WHERE (`id` = 11);
+-- DELETE FROM `db_airbnb`.`NguoiDung` WHERE (`id` = 14) OR (`id` = 15) OR (`id` = 16) OR (`id` = 17) OR (`id` = 18);
+-- DELETE FROM `db_airbnb`.`NguoiDung` WHERE (`id` = 14) OR (`id` = 15) OR (`id` = 16) OR (`id` = 17) OR (`id` = 18);
+-- DELETE FROM `db_airbnb`.`BinhLuan` WHERE (`id` = 77) OR (`id` = 78) OR (`id` = 80) OR (`id` = 82) OR (`id` = 83) OR (`id` = 81) OR (`id` = 79);
+-- DELETE FROM `db_airbnb`.`Phong` WHERE (`id` = 38);
+-- UPDATE `db_airbnb`.`DatPhong` SET `ma_nguoi_dat` = 5 WHERE `id` = 8;
+-- UPDATE `db_airbnb`.`NguoiDung` SET `email` = 'michaelin@gmail.com' WHERE `id` = 1;

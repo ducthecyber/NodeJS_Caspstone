@@ -6,7 +6,7 @@
 
 # DATABASE_URL="mysql://root:1234@localhost:3306/db_airbnb?schema=public"
 
-DATABASE_URL="mysql://root:1234@mysql_db:3306/db_airbnb?schema=public"
+DATABASE_URL="mysql://root:1234@localhost:3306/db_airbnb?schema=public"
 
 SECRET_KEY = 1234
 

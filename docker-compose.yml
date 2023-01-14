@@ -16,8 +16,8 @@ services:
   app:
     depends_on:
       - mysql_db
-    image: ducthe/node_capstone
-    # build: . # docker build . -t img-name
+    # image: ducthe/node_capstone
+    build: . # docker build . -t img-name
     container_name: cons-node
     env_file: .env
     environment:

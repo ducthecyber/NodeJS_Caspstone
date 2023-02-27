@@ -21,7 +21,7 @@ services:
     container_name: cons-node
     env_file: .env
     environment:
-      - DB_HOST=206.189.36.21
+      - DB_HOST=143.198.194.91
       - DB_NAME=$DB_NAME
       - DB_USER=$DB_USER
       - DB_PASS=$DB_PASS
